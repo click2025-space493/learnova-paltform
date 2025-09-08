@@ -13,6 +13,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import type { CourseWithRelations } from "@/types/api";
 
 export default function CourseDetail() {
   const { id } = useParams();
@@ -20,7 +21,7 @@ export default function CourseDetail() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: course, isLoading, error } = useQuery({
+  const { data: course, isLoading, error } = useQuery<CourseWithRelations>({
     queryKey: ["/api/courses", id],
     enabled: !!id,
   });

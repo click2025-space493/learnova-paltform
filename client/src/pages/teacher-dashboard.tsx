@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Users, BookOpen, DollarSign, TrendingUp, Plus, Eye, Edit, MoreHorizontal } from "lucide-react";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import type { CourseWithRelations, TeacherStats } from "@/types/api";
 
 export default function TeacherDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -40,12 +41,12 @@ export default function TeacherDashboard() {
     }
   }, [isAuthenticated, isLoading, user, toast, setLocation]);
 
-  const { data: courses, isLoading: coursesLoading } = useQuery({
+  const { data: courses, isLoading: coursesLoading } = useQuery<CourseWithRelations[]>({
     queryKey: ["/api/teacher/courses"],
     enabled: isAuthenticated && (user?.role === 'teacher' || user?.role === 'admin'),
   });
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery<TeacherStats>({
     queryKey: ["/api/teacher/stats"],
     enabled: isAuthenticated && (user?.role === 'teacher' || user?.role === 'admin'),
   });

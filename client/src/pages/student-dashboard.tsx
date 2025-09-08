@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Award, Calendar, TrendingUp, PlayCircle, Clock } from "lucide-react";
+import type { EnrollmentWithCourse, StudentStats } from "@/types/api";
 
 export default function StudentDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -40,12 +41,12 @@ export default function StudentDashboard() {
     }
   }, [isAuthenticated, isLoading, user, toast, setLocation]);
 
-  const { data: enrollments, isLoading: enrollmentsLoading } = useQuery({
+  const { data: enrollments, isLoading: enrollmentsLoading } = useQuery<EnrollmentWithCourse[]>({
     queryKey: ["/api/student/enrollments"],
     enabled: isAuthenticated && user?.role === 'student',
   });
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery<StudentStats>({
     queryKey: ["/api/student/stats"],
     enabled: isAuthenticated && user?.role === 'student',
   });

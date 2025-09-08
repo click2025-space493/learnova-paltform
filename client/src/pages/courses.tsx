@@ -6,18 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Filter } from "lucide-react";
 import { useState } from "react";
+import type { CourseWithRelations } from "@/types/api";
 
 export default function Courses() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Courses");
 
-  const { data: courses, isLoading, error } = useQuery({
+  const { data: courses, isLoading, error } = useQuery<CourseWithRelations[]>({
     queryKey: ["/api/courses"],
   });
 
   const categories = ["All Courses", "Programming", "Design", "Business", "Marketing"];
 
-  const filteredCourses = courses?.filter((course: any) => {
+  const filteredCourses = courses?.filter((course) => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          course.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "All Courses" || course.category === selectedCategory;

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Users, BookOpen, DollarSign, UserCheck, Settings, CheckCircle, XCircle } from "lucide-react";
+import type { AdminStats } from "@/types/api";
 
 export default function AdminDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -40,7 +41,7 @@ export default function AdminDashboard() {
     }
   }, [isAuthenticated, isLoading, user, toast, setLocation]);
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
     queryKey: ["/api/admin/stats"],
     enabled: isAuthenticated && user?.role === 'admin',
   });
