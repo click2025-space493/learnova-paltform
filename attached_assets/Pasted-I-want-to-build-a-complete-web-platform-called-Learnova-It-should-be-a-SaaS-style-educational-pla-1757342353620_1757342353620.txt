@@ -1,0 +1,61 @@
+I want to build a complete web platform called "Learnova". It should be a SaaS-style educational platform for teachers and students. Here are the detailed requirements:
+
+🔹 Core Concept:
+- Teachers can subscribe to the platform, create and manage courses, and upload course content (videos, PDFs, images).
+- Students can browse courses, subscribe to specific ones, and access course materials.
+- Admin can manage teachers, students, payments, and content.
+
+🔹 User Roles:
+1. **Admin**
+   - Approve or reject teacher accounts.
+   - Manage all users, courses, and subscriptions.
+   - Access analytics and revenue reports.
+   - Add system-wide announcements.
+
+2. **Teacher**
+   - Register and subscribe (monthly/yearly plans) to create courses.
+   - Create, edit, and publish courses (title, description, cover image).
+   - Upload videos (via Cloudinary or similar) and attach resources (PDFs, images).
+   - Manage enrolled students in their courses.
+   - Track course engagement and earnings.
+
+3. **Student**
+   - Register for a free account.
+   - Browse courses by category, rating, or search.
+   - Subscribe/pay to enroll in courses.
+   - Watch course videos in a secure player.
+   - Download or view additional resources.
+   - Track learning progress in their dashboard.
+
+🔹 Features:
+- **Authentication & Authorization**
+  - Role-based system (Admin, Teacher, Student).
+  - Secure login/signup with email + social login option.
+  - Password reset.
+
+- **Course Management**
+  - Teachers can create structured courses (sections + lessons).
+  - Video upload + resource upload (PDF, images).
+  - Course preview page (title, description, price, cover image, teacher info).
+  - Students see "Subscribe" button for paid/free courses.
+
+- **Subscription & Payments**
+  - Teachers must subscribe to publish courses (monthly/yearly).
+  - Students pay per course or bundle (Stripe for international, Vodafone Cash/Fawry for Egypt).
+  - Payment validation + invoices.
+
+- **Dashboards**
+  - Teacher Dashboard: Manage courses, students, earnings.
+  - Student Dashboard: Enrolled courses, progress, certificates.
+  - Admin Dashboard: Manage all users, courses, financials.
+
+- **Video/Resource Hosting**
+  - Use Cloudinary for storing videos, images, PDFs.
+  - Secure delivery with restricted access (only subscribed students can view).
+
+- **Community (Optional for Phase 2)**
+  - Course-based Q&A.
+  - Student feedback and rating system.
+
+- **Certificates (Optional for Phase 2)**
+  - Auto-generate certificates for students who complete a course.
