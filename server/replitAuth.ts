@@ -9,11 +9,16 @@ import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
 if (!process.env.REPLIT_DOMAINS) {
-  throw new Error("Environment variable REPLIT_DOMAINS not provided");
+  console.warn("⚠️  REPLIT_DOMAINS not set. Using localhost for development.");
+  process.env.REPLIT_DOMAINS = "localhost:5000";
 }
 
 const getOidcConfig = memoize(
   async () => {
+    if (!process.env.REPL_ID) {
+      console.warn("⚠️  REPL_ID not set. Using mock config for development.");
+      return null;
+    }
     return await client.discovery(
       new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
       process.env.REPL_ID!
@@ -58,7 +63,6 @@ async function upsertUser(
   claims: any,
 ) {
   await storage.upsertUser({
-    id: claims["sub"],
     email: claims["email"],
     firstName: claims["first_name"],
     lastName: claims["last_name"],
@@ -67,12 +71,33 @@ async function upsertUser(
 }
 
 export async function setupAuth(app: Express) {
+  // For local development without Replit auth
+  if (!process.env.REPL_ID) {
+    console.warn("⚠️  Running in development mode without authentication");
+    
+    // Mock authentication endpoints
+    app.get("/api/login", (req, res) => {
+      res.redirect("/");
+    });
+    
+    app.get("/api/callback", (req, res) => {
+      res.redirect("/");
+    });
+    
+    app.get("/api/logout", (req, res) => {
+      res.redirect("/");
+    });
+    
+    return;
+  }
+
   app.set("trust proxy", 1);
   app.use(getSession());
   app.use(passport.initialize());
   app.use(passport.session());
 
   const config = await getOidcConfig();
+  if (!config) return;
 
   const verify: VerifyFunction = async (
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
@@ -118,7 +143,7 @@ export async function setupAuth(app: Express) {
   app.get("/api/logout", (req, res) => {
     req.logout(() => {
       res.redirect(
-        client.buildEndSessionUrl(config, {
+        client.buildEndSessionUrl(config!, {
           client_id: process.env.REPL_ID!,
           post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
         }).href
@@ -128,6 +153,19 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
+  // For local development without Replit auth, create mock user
+  if (!process.env.REPL_ID) {
+    req.user = {
+      claims: {
+        sub: 'dev-admin-user',
+        email: 'admin@learnova.com',
+        first_name: 'Admin',
+        last_name: 'User'
+      }
+    };
+    return next();
+  }
+
   const user = req.user as any;
 
   if (!req.isAuthenticated() || !user.expires_at) {
@@ -147,6 +185,10 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 
   try {
     const config = await getOidcConfig();
+    if (!config) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
     const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
     updateUserSession(user, tokenResponse);
     return next();

@@ -46,6 +46,20 @@ export default function AdminDashboard() {
     enabled: isAuthenticated && user?.role === 'admin',
   });
 
+  // Fetch recent teachers for quick overview
+  const { data: recentTeachers } = useQuery({
+    queryKey: ["/api/admin/teachers"],
+    enabled: isAuthenticated && user?.role === 'admin',
+    select: (data: any[]) => data?.slice(0, 5) || [], // Get first 5 teachers
+  });
+
+  // Fetch recent courses for quick overview
+  const { data: recentCourses } = useQuery({
+    queryKey: ["/api/admin/courses"],
+    enabled: isAuthenticated && user?.role === 'admin',
+    select: (data: any[]) => data?.slice(0, 3) || [], // Get first 3 courses
+  });
+
   if (isLoading || !isAuthenticated) {
     return (
       <div className="min-h-screen">
@@ -82,6 +96,69 @@ export default function AdminDashboard() {
             <Settings className="h-4 w-4 mr-2" />
             System Settings
           </Button>
+        </div>
+
+        {/* Quick Navigation */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setLocation("/admin/teachers")}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Teachers Management</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Manage all teachers and their activities
+                  </p>
+                </div>
+                <Users className="h-8 w-8 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setLocation("/admin/courses")}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Courses Overview</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Monitor courses and student enrollments
+                  </p>
+                </div>
+                <BookOpen className="h-8 w-8 text-secondary" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setLocation("/admin/videos")}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Video Management</h3>
+                  <p className="text-sm text-muted-foreground">
+                    View and manage all platform videos
+                  </p>
+                </div>
+                <div className="h-8 w-8 bg-accent/20 rounded flex items-center justify-center">
+                  <div className="h-4 w-4 bg-accent rounded-sm" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setLocation("/admin/subscription-requests")}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Subscription Requests</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Review teacher subscription requests
+                  </p>
+                </div>
+                <div className="h-8 w-8 bg-yellow-100 rounded flex items-center justify-center">
+                  <UserCheck className="h-5 w-5 text-yellow-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Platform Stats */}
@@ -148,133 +225,89 @@ export default function AdminDashboard() {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Pending Approvals */}
+          {/* Recent Teachers */}
           <Card>
             <CardHeader>
-              <CardTitle>Pending Approvals</CardTitle>
+              <CardTitle>Recent Teachers</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {/* Mock pending approval */}
-                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                  <div className="flex items-center">
-                    <Avatar className="h-10 w-10 mr-3">
-                      <AvatarFallback data-testid="text-teacher-initials-1">DW</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="text-sm font-medium text-foreground" data-testid="text-teacher-name-1">
-                        David Wilson
+                {recentTeachers && recentTeachers.length > 0 ? (
+                  recentTeachers.map((teacher: any) => (
+                    <div key={teacher.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                      <div className="flex items-center">
+                        <Avatar className="h-10 w-10 mr-3">
+                          <AvatarImage src={teacher.profileImageUrl} />
+                          <AvatarFallback>
+                            {teacher.firstName?.[0]}{teacher.lastName?.[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="text-sm font-medium text-foreground">
+                            {teacher.name || `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim() || teacher.email}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {teacher.email}
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-xs text-muted-foreground" data-testid="text-course-name-1">
-                        Data Science Course
-                      </div>
+                      <Badge variant="secondary">
+                        {teacher.role}
+                      </Badge>
                     </div>
+                  ))
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-muted-foreground">
+                      No teachers found.
+                    </p>
                   </div>
-                  <div className="flex space-x-2">
-                    <Button size="sm" variant="outline" className="text-green-600 hover:bg-green-50 hover:border-green-200" data-testid="button-approve-1">
-                      <CheckCircle className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="outline" className="text-destructive hover:bg-red-50 hover:border-red-200" data-testid="button-reject-1">
-                      <XCircle className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                  <div className="flex items-center">
-                    <Avatar className="h-10 w-10 mr-3">
-                      <AvatarFallback data-testid="text-teacher-initials-2">SM</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="text-sm font-medium text-foreground" data-testid="text-teacher-name-2">
-                        Sarah Martinez
-                      </div>
-                      <div className="text-xs text-muted-foreground" data-testid="text-course-name-2">
-                        Photography Basics
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button size="sm" variant="outline" className="text-green-600 hover:bg-green-50 hover:border-green-200" data-testid="button-approve-2">
-                      <CheckCircle className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="outline" className="text-destructive hover:bg-red-50 hover:border-red-200" data-testid="button-reject-2">
-                      <XCircle className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="text-center py-4">
-                  <p className="text-sm text-muted-foreground">
-                    All caught up! No pending approvals.
-                  </p>
-                </div>
+                )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Recent Activity */}
+          {/* Recent Courses */}
           <Card>
             <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
+              <CardTitle>Recent Courses</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center p-3 bg-muted rounded-lg">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mr-3">
-                    <Users className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-foreground" data-testid="text-activity-title-1">
-                      15 new user registrations
+                {recentCourses && recentCourses.length > 0 ? (
+                  recentCourses.map((course: any) => (
+                    <div key={course.id} className="flex items-center p-3 bg-muted rounded-lg">
+                      <div className="w-10 h-10 bg-secondary/10 rounded-full flex items-center justify-center mr-3">
+                        <BookOpen className="h-5 w-5 text-secondary" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-foreground">
+                          {course.title}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          by {course.teacherName}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {course.enrollmentCount} students • {course.lessonCount} lessons
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <Badge variant={course.status === 'published' ? 'default' : 'secondary'}>
+                          {course.status}
+                        </Badge>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          ${course.price}
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-xs text-muted-foreground" data-testid="text-activity-time-1">
-                      Last 24 hours
-                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-muted-foreground">
+                      No courses found.
+                    </p>
                   </div>
-                </div>
-
-                <div className="flex items-center p-3 bg-muted rounded-lg">
-                  <div className="w-10 h-10 bg-secondary/10 rounded-full flex items-center justify-center mr-3">
-                    <BookOpen className="h-5 w-5 text-secondary" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-foreground" data-testid="text-activity-title-2">
-                      3 new courses published
-                    </div>
-                    <div className="text-xs text-muted-foreground" data-testid="text-activity-time-2">
-                      Last 48 hours
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center p-3 bg-muted rounded-lg">
-                  <div className="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center mr-3">
-                    <DollarSign className="h-5 w-5 text-accent" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-foreground" data-testid="text-activity-title-3">
-                      $2,340 in course purchases
-                    </div>
-                    <div className="text-xs text-muted-foreground" data-testid="text-activity-time-3">
-                      This week
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center p-3 bg-muted rounded-lg">
-                  <div className="w-10 h-10 bg-green-600/10 rounded-full flex items-center justify-center mr-3">
-                    <UserCheck className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-foreground" data-testid="text-activity-title-4">
-                      2 teacher applications approved
-                    </div>
-                    <div className="text-xs text-muted-foreground" data-testid="text-activity-time-4">
-                      Yesterday
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
             </CardContent>
           </Card>

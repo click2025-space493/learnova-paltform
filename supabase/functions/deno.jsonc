@@ -1,0 +1,17 @@
+{
+  // Deno configuration for Supabase Edge Functions
+  "compilerOptions": {
+    "allowJs": true,
+    "lib": ["deno.window", "dom"],
+    "strict": true,
+    "noImplicitAny": false,
+    "skipLibCheck": true
+  },
+  "imports": {
+    "std/": "https://deno.land/std@0.168.0/",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
+  },
+  "tasks": {
+    "dev": "deno run --allow-all --watch main.ts"
+  }
+}

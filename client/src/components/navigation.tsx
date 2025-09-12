@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { GraduationCap, Menu, User, LogOut, Settings, BookOpen, Users, BarChart3 } from "lucide-react";
+import { GraduationCap, Menu, User, LogOut, Settings, BookOpen, Users, BarChart3, Video, UserCheck } from "lucide-react";
 
 export default function Navigation() {
   const { user, isAuthenticated } = useAuth();
@@ -84,9 +84,9 @@ export default function Navigation() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-8 w-8 rounded-full" data-testid="button-user-menu">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={user?.profileImageUrl || ""} alt={user?.firstName || ""} />
+                        <AvatarImage src={user?.avatar_url || ""} alt={user?.name || ""} />
                         <AvatarFallback>
-                          {user?.firstName?.[0] || user?.email?.[0] || 'U'}
+                          {user?.name?.[0] || user?.email?.[0] || 'U'}
                         </AvatarFallback>
                       </Avatar>
                     </Button>
@@ -95,7 +95,7 @@ export default function Navigation() {
                     <div className="flex items-center justify-start gap-2 p-2">
                       <div className="flex flex-col space-y-1 leading-none">
                         <p className="text-sm font-medium" data-testid="text-user-name">
-                          {user?.firstName} {user?.lastName}
+                          {user?.name}
                         </p>
                         <p className="text-xs text-muted-foreground" data-testid="text-user-email">
                           {user?.email}
@@ -111,6 +111,28 @@ export default function Navigation() {
                         {getUserDashboardLabel()}
                       </Link>
                     </DropdownMenuItem>
+                    {user?.role === 'admin' && (
+                      <>
+                        <DropdownMenuItem asChild>
+                          <Link href="/admin/teachers" className="w-full" data-testid="link-admin-teachers">
+                            <Users className="mr-2 h-4 w-4" />
+                            Teachers Management
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/admin/courses" className="w-full" data-testid="link-admin-courses">
+                            <BookOpen className="mr-2 h-4 w-4" />
+                            Courses Management
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/admin/videos" className="w-full" data-testid="link-admin-videos">
+                            <div className="mr-2 h-4 w-4 bg-current rounded-sm opacity-70" />
+                            Video Management
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
                     <DropdownMenuItem asChild>
                       <Link href="/profile" className="w-full" data-testid="link-profile">
                         <User className="mr-2 h-4 w-4" />
@@ -135,18 +157,18 @@ export default function Navigation() {
               </div>
             ) : (
               <div className="flex items-center space-x-4">
-                <a
-                  href="/api/login"
+                <Link
+                  href="/signin"
                   className="text-foreground hover:text-primary transition-colors"
                   data-testid="link-signin"
                 >
                   Sign In
-                </a>
-                <a href="/api/login">
+                </Link>
+                <Link href="/role-selection">
                   <Button data-testid="button-get-started">
                     Get Started
                   </Button>
-                </a>
+                </Link>
               </div>
             )}
           </div>
@@ -177,14 +199,14 @@ export default function Navigation() {
                     <div className="pt-4 border-t border-border space-y-4">
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-10 w-10">
-                          <AvatarImage src={user?.profileImageUrl || ""} alt={user?.firstName || ""} />
+                          <AvatarImage src={user?.avatar_url || ""} alt={user?.name || ""} />
                           <AvatarFallback>
-                            {user?.firstName?.[0] || user?.email?.[0] || 'U'}
+                            {user?.name?.[0] || user?.email?.[0] || 'U'}
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <p className="text-sm font-medium" data-testid="mobile-text-user-name">
-                            {user?.firstName} {user?.lastName}
+                            {user?.name}
                           </p>
                           <p className="text-xs text-muted-foreground" data-testid="mobile-text-user-email">
                             {user?.email}
@@ -200,6 +222,35 @@ export default function Navigation() {
                       >
                         {getUserDashboardLabel()}
                       </Link>
+                      
+                      {user?.role === 'admin' && (
+                        <>
+                          <Link
+                            href="/admin/teachers"
+                            className="block text-foreground hover:text-primary transition-colors"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            data-testid="mobile-link-admin-teachers"
+                          >
+                            Teachers Management
+                          </Link>
+                          <Link
+                            href="/admin/courses"
+                            className="block text-foreground hover:text-primary transition-colors"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            data-testid="mobile-link-admin-courses"
+                          >
+                            Courses Management
+                          </Link>
+                          <Link
+                            href="/admin/videos"
+                            className="block text-foreground hover:text-primary transition-colors"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            data-testid="mobile-link-admin-videos"
+                          >
+                            Video Management
+                          </Link>
+                        </>
+                      )}
                       
                       {user?.role === 'teacher' && (
                         <Link

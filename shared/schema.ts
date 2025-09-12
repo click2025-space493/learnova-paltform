@@ -49,8 +49,25 @@ export const teacherSubscriptions = pgTable("teacher_subscriptions", {
   teacherId: varchar("teacher_id").references(() => users.id).notNull(),
   status: subscriptionStatusEnum("status").default('inactive').notNull(),
   planType: varchar("plan_type").default('free').notNull(), // free, pro, enterprise
+  canPublishCourses: boolean("can_publish_courses").default(false).notNull(),
   startDate: timestamp("start_date"),
   endDate: timestamp("end_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Teacher subscription requests
+export const subscriptionRequestStatusEnum = pgEnum('subscription_request_status', ['pending', 'approved', 'rejected']);
+
+export const teacherSubscriptionRequests = pgTable("teacher_subscription_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  teacherId: varchar("teacher_id").references(() => users.id).notNull(),
+  planType: varchar("plan_type").default('pro').notNull(),
+  message: text("message"), // Teacher's request message
+  status: subscriptionRequestStatusEnum("status").default('pending').notNull(),
+  adminNotes: text("admin_notes"), // Admin's notes/response
+  reviewedBy: varchar("reviewed_by").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -217,6 +234,14 @@ export const insertTeacherSubscriptionSchema = createInsertSchema(teacherSubscri
   id: true,
   createdAt: true,
   updatedAt: true,
+});
+
+export const insertTeacherSubscriptionRequestSchema = createInsertSchema(teacherSubscriptionRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  reviewedAt: true,
+  reviewedBy: true,
 });
 
 // Types

@@ -1,0 +1,10 @@
+{
+  "deno.enable": true,
+  "deno.lint": true,
+  "deno.unstable": true,
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "typescript.suggest.autoImports": "off",
+  "typescript.validate.enable": false,
+  "deno.enablePaths": ["./"],
+  "deno.config": "./deno.jsonc"
+}

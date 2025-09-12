@@ -3,14 +3,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, BookOpen, DollarSign, TrendingUp, Plus, Eye, Edit, MoreHorizontal } from "lucide-react";
-import { isUnauthorizedError } from "@/lib/authUtils";
-import type { CourseWithRelations, TeacherStats } from "@/types/api";
+import { Users, BookOpen, DollarSign, TrendingUp, Plus, Eye, Edit, MoreHorizontal, Bell } from "lucide-react";
+import EnrollmentRequests from "@/components/enrollment-requests";
 
 export default function TeacherDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -41,14 +41,74 @@ export default function TeacherDashboard() {
     }
   }, [isAuthenticated, isLoading, user, toast, setLocation]);
 
-  const { data: courses, isLoading: coursesLoading } = useQuery<CourseWithRelations[]>({
-    queryKey: ["/api/teacher/courses"],
-    enabled: isAuthenticated && (user?.role === 'teacher' || user?.role === 'admin'),
+  const { data: courses, isLoading: coursesLoading } = useQuery({
+    queryKey: ['teacher-courses', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('courses')
+        .select(`
+          id,
+          title,
+          description,
+          category,
+          price,
+          cover_image_url,
+          is_published,
+          created_at,
+          updated_at
+        `)
+        .eq('teacher_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: isAuthenticated && !!user?.id && (user?.role === 'teacher' || user?.role === 'admin'),
   });
 
-  const { data: stats, isLoading: statsLoading } = useQuery<TeacherStats>({
-    queryKey: ["/api/teacher/stats"],
-    enabled: isAuthenticated && (user?.role === 'teacher' || user?.role === 'admin'),
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ['teacher-stats', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return { totalStudents: 0, totalCourses: 0, monthlyRevenue: 0, completionRate: 0, pendingRequests: 0 };
+      
+      // Get total courses
+      const { count: totalCourses } = await supabase
+        .from('courses')
+        .select('*', { count: 'exact', head: true })
+        .eq('teacher_id', user.id);
+      
+      // Get total students (enrolled in teacher's courses)
+      // First get course IDs for this teacher
+      const { data: teacherCourses } = await supabase
+        .from('courses')
+        .select('id')
+        .eq('teacher_id', user.id);
+      
+      const courseIds = teacherCourses?.map(course => course.id) || [];
+      
+      const { count: totalStudents } = await supabase
+        .from('enrollments')
+        .select('student_id', { count: 'exact', head: true })
+        .in('course_id', courseIds);
+      
+      // Get pending enrollment requests count
+      const { count: pendingRequests } = await supabase
+        .from('enrollment_requests')
+        .select('*', { count: 'exact', head: true })
+        .in('course_id', courseIds)
+        .eq('status', 'pending');
+      
+      return {
+        totalStudents: totalStudents || 0,
+        totalCourses: totalCourses || 0,
+        monthlyRevenue: 0, // TODO: Calculate from enrollments
+        completionRate: 85, // TODO: Calculate from lesson progress
+        pendingRequests: pendingRequests || 0
+      };
+    },
+    enabled: isAuthenticated && !!user?.id && (user?.role === 'teacher' || user?.role === 'admin'),
   });
 
   if (isLoading || !isAuthenticated) {
@@ -80,7 +140,7 @@ export default function TeacherDashboard() {
           <div>
             <h1 className="text-3xl font-bold text-foreground">Teacher Dashboard</h1>
             <p className="text-muted-foreground">
-              Welcome back, {user?.firstName}! Here's your teaching overview.
+              Welcome back, {user?.name}! Here's your teaching overview.
             </p>
           </div>
           <Link href="/create-course">
@@ -139,16 +199,22 @@ export default function TeacherDashboard() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-2xl font-bold text-green-600" data-testid="text-completion-rate">
-                    {statsLoading ? "..." : (stats?.completionRate || 0)}%
+                  <div className="text-2xl font-bold text-orange-600 flex items-center gap-2" data-testid="text-pending-requests">
+                    {statsLoading ? "..." : (stats?.pendingRequests || 0)}
+                    {(stats?.pendingRequests || 0) > 0 && (
+                      <Badge variant="destructive" className="text-xs">New!</Badge>
+                    )}
                   </div>
-                  <div className="text-sm text-muted-foreground">Completion Rate</div>
+                  <div className="text-sm text-muted-foreground">Pending Requests</div>
                 </div>
-                <TrendingUp className="h-8 w-8 text-green-600" />
+                <Bell className="h-8 w-8 text-orange-600" />
               </div>
             </CardContent>
           </Card>
         </div>
+
+        {/* Enrollment Requests Section */}
+        <EnrollmentRequests />
 
         {/* Courses Section */}
         <Card>
@@ -181,9 +247,9 @@ export default function TeacherDashboard() {
               <div className="space-y-4">
                 {courses.map((course: any) => (
                   <div key={course.id} className="flex items-center p-4 bg-muted rounded-lg">
-                    {course.coverImageUrl ? (
+                    {course.cover_image_url ? (
                       <img
-                        src={course.coverImageUrl}
+                        src={course.cover_image_url}
                         alt={course.title}
                         className="w-16 h-16 object-cover rounded mr-4"
                       />
@@ -198,8 +264,8 @@ export default function TeacherDashboard() {
                         {course.title}
                       </h3>
                       <div className="flex items-center gap-2">
-                        <Badge variant={course.status === 'published' ? 'default' : 'secondary'} data-testid={`badge-status-${course.id}`}>
-                          {course.status}
+                        <Badge variant={course.is_published ? 'default' : 'secondary'} data-testid={`badge-status-${course.id}`}>
+                          {course.is_published ? 'Published' : 'Draft'}
                         </Badge>
                         <span className="text-sm text-muted-foreground" data-testid={`text-course-category-${course.id}`}>
                           {course.category}
@@ -217,10 +283,12 @@ export default function TeacherDashboard() {
                           View
                         </Button>
                       </Link>
-                      <Button size="sm" variant="outline" data-testid={`button-edit-${course.id}`}>
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
+                      <Link href={`/courses/${course.id}/edit`}>
+                        <Button size="sm" variant="outline" data-testid={`button-edit-${course.id}`}>
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 ))}

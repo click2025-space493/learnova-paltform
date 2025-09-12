@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
+import { supabase } from "@/lib/supabase";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
@@ -10,10 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PlayCircle, Clock, Users, Star, Download, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { isUnauthorizedError } from "@/lib/authUtils";
-import type { CourseWithRelations } from "@/types/api";
 
 export default function CourseDetail() {
   const { id } = useParams();
@@ -21,34 +19,83 @@ export default function CourseDetail() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: course, isLoading, error } = useQuery<CourseWithRelations>({
-    queryKey: ["/api/courses", id],
+  const { data: course, isLoading, error } = useQuery({
+    queryKey: ['course-detail', id],
+    queryFn: async () => {
+      if (!id) throw new Error('Course ID is required');
+      
+      const { data, error } = await supabase
+        .from('courses')
+        .select(`
+          id,
+          title,
+          description,
+          category,
+          price,
+          cover_image_url,
+          is_published,
+          created_at,
+          teacher_id,
+          teacher:users!courses_teacher_id_fkey (
+            id,
+            name,
+            avatar_url
+          ),
+          chapters (
+            id,
+            title,
+            description,
+            position,
+            lessons (
+              id,
+              title,
+              description,
+              type,
+              video_duration,
+              position
+            )
+          )
+        `)
+        .eq('id', id)
+        .eq('is_published', true)
+        .single();
+      
+      if (error) throw error;
+      
+      // Transform the data to handle array responses
+      const transformedData = {
+        ...data,
+        teacher: Array.isArray(data.teacher) ? data.teacher[0] : data.teacher
+      };
+      
+      return transformedData;
+    },
     enabled: !!id,
   });
 
   const enrollMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", `/api/courses/${id}/enroll`);
+      if (!id || !user?.id) throw new Error('Course ID and user required');
+      
+      const { error } = await supabase
+        .from('enrollments')
+        .insert({
+          student_id: user.id,
+          course_id: id,
+          enrolled_at: new Date().toISOString()
+        });
+      
+      if (error) throw error;
     },
     onSuccess: () => {
       toast({
         title: "Successfully enrolled!",
         description: "You can now access the course content.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/student/enrollments"] });
+      queryClient.invalidateQueries({ queryKey: ['student-enrollments'] });
     },
     onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
+      console.error('Enrollment error:', error);
       toast({
         title: "Enrollment failed",
         description: "Please try again later.",
@@ -121,9 +168,9 @@ export default function CourseDetail() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Course Content */}
           <div className="lg:col-span-2">
-            {course?.coverImageUrl && (
+            {course?.cover_image_url && (
               <img
-                src={course.coverImageUrl}
+                src={course.cover_image_url}
                 alt={course.title}
                 className="w-full h-64 object-cover rounded-lg mb-6"
                 data-testid="img-course-cover"
@@ -155,13 +202,15 @@ export default function CourseDetail() {
               <div className="flex items-center text-sm text-muted-foreground">
                 <PlayCircle className="h-4 w-4 mr-2" />
                 <span data-testid="text-lesson-count">
-                  {course?.lessons?.length || 0} lessons
+                  {course?.chapters?.reduce((acc: number, chapter: any) => acc + (chapter.lessons?.length || 0), 0) || 0} lessons
                 </span>
               </div>
               <div className="flex items-center text-sm text-muted-foreground">
                 <Clock className="h-4 w-4 mr-2" />
                 <span data-testid="text-course-duration">
-                  {Math.ceil((course?.lessons?.reduce((acc: number, lesson: any) => acc + (lesson.duration || 0), 0) || 0) / 60)} hours
+                  {Math.ceil((course?.chapters?.reduce((acc: number, chapter: any) => 
+                    acc + (chapter.lessons?.reduce((lessonAcc: number, lesson: any) => 
+                      lessonAcc + (lesson.video_duration || 0), 0) || 0), 0) || 0) / 60)} hours
                 </span>
               </div>
               <div className="flex items-center text-sm text-muted-foreground">
@@ -170,41 +219,57 @@ export default function CourseDetail() {
               </div>
               <div className="flex items-center text-sm text-muted-foreground">
                 <Download className="h-4 w-4 mr-2" />
-                <span data-testid="text-resource-count">
-                  {course?.resources?.length || 0} resources
-                </span>
+                <span data-testid="text-resource-count">0 resources</span>
               </div>
             </div>
 
-            {/* Course Lessons */}
-            {course?.lessons && course.lessons.length > 0 && (
+            {/* Course Content */}
+            {course?.chapters && course.chapters.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Course Content</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  {course.lessons.map((lesson: any, index: number) => (
-                    <div key={lesson.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-sm font-medium text-primary mr-3">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-foreground" data-testid={`text-lesson-title-${index}`}>
-                            {lesson.title}
-                          </h4>
-                          {lesson.description && (
-                            <p className="text-sm text-muted-foreground" data-testid={`text-lesson-description-${index}`}>
-                              {lesson.description}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Clock className="h-4 w-4 mr-1" />
-                        <span data-testid={`text-lesson-duration-${index}`}>
-                          {lesson.duration || 0} min
-                        </span>
+                <CardContent className="space-y-6">
+                  {course.chapters
+                    .sort((a: any, b: any) => a.position - b.position)
+                    .map((chapter: any, chapterIndex: number) => (
+                    <div key={chapter.id} className="space-y-3">
+                      <h3 className="text-lg font-semibold text-foreground">
+                        Chapter {chapterIndex + 1}: {chapter.title}
+                      </h3>
+                      {chapter.description && (
+                        <p className="text-sm text-muted-foreground mb-3">
+                          {chapter.description}
+                        </p>
+                      )}
+                      <div className="space-y-2">
+                        {chapter.lessons
+                          ?.sort((a: any, b: any) => a.position - b.position)
+                          .map((lesson: any, lessonIndex: number) => (
+                          <div key={lesson.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                            <div className="flex items-center">
+                              <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-sm font-medium text-primary mr-3">
+                                {lessonIndex + 1}
+                              </div>
+                              <div>
+                                <h4 className="font-medium text-foreground" data-testid={`text-lesson-title-${chapterIndex}-${lessonIndex}`}>
+                                  {lesson.title}
+                                </h4>
+                                {lesson.description && (
+                                  <p className="text-sm text-muted-foreground" data-testid={`text-lesson-description-${chapterIndex}-${lessonIndex}`}>
+                                    {lesson.description}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center text-sm text-muted-foreground">
+                              <Clock className="h-4 w-4 mr-1" />
+                              <span data-testid={`text-lesson-duration-${chapterIndex}-${lessonIndex}`}>
+                                {lesson.video_duration || 0} min
+                              </span>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ))}
@@ -217,9 +282,9 @@ export default function CourseDetail() {
           <div>
             <Card className="sticky top-8">
               <CardContent className="p-6">
-                {course?.coverImageUrl && (
+                {course?.cover_image_url && (
                   <img
-                    src={course.coverImageUrl}
+                    src={course.cover_image_url}
                     alt={course.title}
                     className="w-full h-40 object-cover rounded-lg mb-4"
                   />
@@ -233,22 +298,23 @@ export default function CourseDetail() {
                 </div>
 
                 {isAuthenticated && user?.role === 'student' ? (
-                  <Button
-                    className="w-full mb-4"
-                    onClick={() => enrollMutation.mutate()}
-                    disabled={enrollMutation.isPending}
-                    data-testid="button-enroll-course"
-                  >
-                    {enrollMutation.isPending ? "Enrolling..." : "Enroll Now"}
-                  </Button>
+                  <Link href={`/courses/${id}/payment`}>
+                    <Button
+                      className="w-full mb-4"
+                      data-testid="button-enroll-course"
+                    >
+                      Enroll Now
+                    </Button>
+                  </Link>
                 ) : !isAuthenticated ? (
-                  <Button
-                    className="w-full mb-4"
-                    onClick={() => window.location.href = "/api/login"}
-                    data-testid="button-login-enroll"
-                  >
-                    Login to Enroll
-                  </Button>
+                  <Link href="/signin">
+                    <Button
+                      className="w-full mb-4"
+                      data-testid="button-login-enroll"
+                    >
+                      Login to Enroll
+                    </Button>
+                  </Link>
                 ) : (
                   <Button className="w-full mb-4" disabled data-testid="button-enroll-disabled">
                     {user?.role === 'teacher' ? 'Teachers cannot enroll' : 'Enrollment unavailable'}
@@ -260,14 +326,14 @@ export default function CourseDetail() {
                 {/* Instructor Info */}
                 <div className="flex items-center mb-4">
                   <Avatar className="h-12 w-12 mr-3">
-                    <AvatarImage src="/placeholder-avatar.jpg" />
+                    <AvatarImage src={course?.teacher?.avatar_url || "/placeholder-avatar.jpg"} />
                     <AvatarFallback data-testid="text-instructor-initials">
-                      {course?.teacher?.firstName?.[0] || 'T'}
+                      {course?.teacher?.name?.[0] || 'T'}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <h4 className="font-medium text-foreground" data-testid="text-instructor-name">
-                      {course?.teacher?.firstName} {course?.teacher?.lastName}
+                      {course?.teacher?.name || 'Teacher'}
                     </h4>
                     <p className="text-sm text-muted-foreground">Course Instructor</p>
                   </div>
