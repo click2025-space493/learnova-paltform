@@ -35,18 +35,11 @@ export default function HeroSection() {
                   </Link>
                 )
               ) : (
-                <>
-                  <Link href="/signup-teacher">
-                    <Button size="lg" className="bg-accent text-accent-foreground hover:opacity-90" data-testid="button-start-teaching">
-                      Start Teaching
-                    </Button>
-                  </Link>
-                  <Link href="/courses">
-                    <Button size="lg" variant="outline" className="bg-white/10 text-white border-white/20 hover:bg-white/20" data-testid="button-explore-courses-guest">
-                      Explore Courses
-                    </Button>
-                  </Link>
-                </>
+                <Link href="/courses">
+                  <Button size="lg" variant="outline" className="bg-white/10 text-white border-white/20 hover:bg-white/20" data-testid="button-explore-courses-guest">
+                    Explore Courses
+                  </Button>
+                </Link>
               )}
             </div>
 
