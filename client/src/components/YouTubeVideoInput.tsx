@@ -88,10 +88,10 @@ export function YouTubeVideoInput({
       setVideoInfo(mockVideoInfo)
       
       // Call the parent callback with video data
-      console.log('YouTube video selected:', { youtubeVideoId: videoId, youtubeVideoUrl: url });
+      console.log('YouTube video selected:', { youtubeVideoId: videoId, youtubeVideoUrl: youtubeUrl });
       onVideoSelect({
         youtubeVideoId: videoId,
-        youtubeVideoUrl: url,
+        youtubeVideoUrl: youtubeUrl,
         duration: 0 // We don't get duration from YouTube API in this simple implementation
       });
 
