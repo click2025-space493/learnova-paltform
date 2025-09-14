@@ -88,13 +88,12 @@ export function YouTubeVideoInput({
       setVideoInfo(mockVideoInfo)
       
       // Call the parent callback with video data
+      console.log('YouTube video selected:', { youtubeVideoId: videoId, youtubeVideoUrl: url });
       onVideoSelect({
         youtubeVideoId: videoId,
-        youtubeVideoUrl: youtubeUrl,
-        title: mockVideoInfo.title,
-        duration: mockVideoInfo.duration,
-        thumbnail: mockVideoInfo.thumbnail
-      })
+        youtubeVideoUrl: url,
+        duration: 0 // We don't get duration from YouTube API in this simple implementation
+      });
 
       toast({
         title: 'Video Added',

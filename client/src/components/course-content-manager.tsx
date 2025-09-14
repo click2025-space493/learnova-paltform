@@ -407,6 +407,7 @@ export default function CourseContentManager({ courseId }: CourseContentManagerP
                           <Label>YouTube Video</Label>
                           <YouTubeVideoInput
                             onVideoSelect={(videoData) => {
+                              console.log('Video data received:', videoData);
                               updateLesson(lesson.id, { 
                                 youtube_video_id: videoData.youtubeVideoId,
                                 youtube_video_url: videoData.youtubeVideoUrl,
