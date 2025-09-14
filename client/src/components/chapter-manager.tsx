@@ -15,9 +15,9 @@ interface Lesson {
   title: string;
   description: string;
   videoUrl?: string;
-  youtubeVideoId?: string;
-  youtubeVideoUrl?: string;
-  videoDuration?: number;
+  youtube_video_id?: string;
+  youtube_video_url?: string;
+  video_duration?: number;
   order: number;
   type: 'video' | 'text';
   content?: string;
@@ -141,7 +141,7 @@ export default function ChapterManager({ chapters, onChaptersChange }: ChapterMa
 
   const getTotalDuration = (chapter: Chapter) => {
     return chapter.lessons.reduce((total, lesson) => {
-      return total + (lesson.videoDuration || 0);
+      return total + (lesson.video_duration || 0);
     }, 0);
   };
 
@@ -301,13 +301,14 @@ export default function ChapterManager({ chapters, onChaptersChange }: ChapterMa
                             <Label>YouTube Video</Label>
                             <YouTubeVideoInput
                               onVideoSelect={(videoData) => {
+                                console.log('Chapter manager - Video data received:', videoData);
                                 updateLesson(chapter.id, lesson.id, { 
-                                  youtubeVideoId: videoData.youtubeVideoId,
-                                  youtubeVideoUrl: videoData.youtubeVideoUrl,
-                                  videoDuration: videoData.duration 
+                                  youtube_video_id: videoData.youtubeVideoId,
+                                  youtube_video_url: videoData.youtubeVideoUrl,
+                                  video_duration: videoData.duration 
                                 });
                               }}
-                              initialUrl={lesson.youtubeVideoUrl}
+                              initialUrl={lesson.youtube_video_url}
                             />
                           </div>
                         )}
@@ -355,9 +356,9 @@ export default function ChapterManager({ chapters, onChaptersChange }: ChapterMa
                           </div>
                           <h4 className="font-medium">{lesson.title}</h4>
                           <p className="text-sm text-muted-foreground mt-1">{lesson.description}</p>
-                          {lesson.videoDuration && (
+                          {lesson.video_duration && (
                             <p className="text-xs text-muted-foreground mt-1">
-                              Duration: {formatDuration(lesson.videoDuration)}
+                              Duration: {formatDuration(lesson.video_duration)}
                             </p>
                           )}
                         </div>
