@@ -144,6 +144,8 @@ export default function CourseViewer() {
               type,
               content,
               video_url,
+              youtube_video_id,
+              youtube_video_url,
               video_duration,
               position,
               is_free
