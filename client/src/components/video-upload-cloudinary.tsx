@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Card, CardContent } from '@/components/ui/card'
 import { Upload, X, CheckCircle, AlertCircle, Play } from 'lucide-react'
-import { cloudinaryManager, type CloudinaryAccount } from '@/lib/cloudinary'
 import { useToast } from '@/hooks/use-toast'
+import { supabase } from '@/lib/supabase'
 
 interface VideoUploadProps {
   onUploadComplete: (videoData: {
@@ -37,7 +37,7 @@ export function VideoUploadCloudinary({
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
   const [error, setError] = useState<string | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [currentAccount, setCurrentAccount] = useState<CloudinaryAccount | null>(null)
+  const [uploadMessage, setUploadMessage] = useState<string>('')
   
   const fileInputRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -88,96 +88,28 @@ export function VideoUploadCloudinary({
     setPreviewUrl(url)
   }, [validateFile, toast])
 
-  const uploadToCloudinary = useCallback(async (file: File, account: CloudinaryAccount) => {
-    return new Promise<any>((resolve, reject) => {
-      const formData = new FormData()
-      
-      // Try upload preset first, fallback to basic upload
-      formData.append('file', file)
-      formData.append('resource_type', 'video')
-      
-      // Get preset configuration from environment based on account
-      const accountIndex = cloudinaryManager.getAccountIndex(account.cloudName) + 1;
-      const presetName = import.meta.env[`VITE_CLOUDINARY_UPLOAD_PRESET_${accountIndex}`] || 
-                        import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 
-                        'learnova_videos'
-      const isUnsigned = import.meta.env.VITE_CLOUDINARY_UNSIGNED === 'true'
-      
-      if (isUnsigned && presetName) {
-        formData.append('upload_preset', presetName)
-      } else {
-        // Fallback to signed upload if no preset
-        formData.append('api_key', account.apiKey)
-        formData.append('timestamp', Math.round(Date.now() / 1000).toString())
-        formData.append('folder', 'learnova/videos')
-      }
-      
-      // Add debugging
-      console.log('🚀 Starting upload to account:', account.cloudName)
-      console.log('📋 Upload mode:', isUnsigned ? 'Unsigned preset' : 'Signed upload')
-      console.log('📋 Preset name:', presetName)
-      console.log('🔗 Upload URL:', `https://api.cloudinary.com/v1_1/${account.cloudName}/video/upload`)
-      console.log('📁 File details:', {
-        name: file.name,
-        size: file.size,
-        type: file.type
-      })
-      
-      const xhr = new XMLHttpRequest()
-      
-      // Track upload progress
-      xhr.upload.addEventListener('progress', (event) => {
-        if (event.lengthComputable) {
-          const percentage = Math.round((event.loaded / event.total) * 100)
-          setUploadProgress({
-            loaded: event.loaded,
-            total: event.total,
-            percentage
-          })
-        }
-      })
-      
-      xhr.addEventListener('load', () => {
-        console.log('✅ Upload response status:', xhr.status)
-        console.log('📄 Upload response:', xhr.responseText)
-        
-        if (xhr.status === 200) {
-          try {
-            const response = JSON.parse(xhr.responseText)
-            console.log('🎉 Parsed response:', response)
-            console.log('🔗 Video URL:', response.secure_url)
-            resolve(response)
-          } catch (error) {
-            console.error('❌ Failed to parse response:', error)
-            reject(new Error('Failed to parse upload response'))
-          }
-        } else {
-          console.error('❌ Upload failed with status:', xhr.status, xhr.responseText)
-          try {
-            const errorResponse = JSON.parse(xhr.responseText)
-            console.error('❌ Error details:', errorResponse)
-          } catch (e) {
-            console.error('❌ Could not parse error response')
-          }
-          reject(new Error(`Upload failed with status: ${xhr.status} - ${xhr.responseText}`))
-        }
-      })
-      
-      xhr.addEventListener('error', () => {
-        reject(new Error('Upload failed due to network error'))
-      })
-      
-      xhr.addEventListener('timeout', () => {
-        reject(new Error('Upload timed out'))
-      })
-      
-      // Set timeout for large files (30 minutes)
-      xhr.timeout = 30 * 60 * 1000
-      
-      const uploadUrl = cloudinaryManager.getUploadUrl(account)
-      xhr.open('POST', uploadUrl)
-      xhr.send(formData)
+  const uploadToSupabase = useCallback(async (file: File) => {
+    console.log('🚀 Starting upload to Supabase Edge Function')
+    console.log('📁 File details:', {
+      name: file.name,
+      size: file.size,
+      type: file.type
     })
+    
+    const formData = new FormData()
+    formData.append('video', file)
+    
+    const { data, error } = await supabase.functions.invoke('upload-video', {
+      body: formData
+    })
+    
+    if (error) {
+      console.error('❌ Upload failed:', error)
+      throw new Error(error.message || 'Upload failed')
+    }
+    
+    console.log('✅ Upload successful:', data)
+    return data
   }, [])
 
   const handleUpload = useCallback(async () => {
@@ -186,79 +118,60 @@ export function VideoUploadCloudinary({
     setUploading(true)
     setUploadStatus('uploading')
     setError(null)
+    setUploadMessage('Uploading to server...')
 
-    const maxRetries = cloudinaryManager.getAccountCount()
-    let lastError: Error | null = null
-    let currentUploadAccount: CloudinaryAccount | null = null
-
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-      try {
-        currentUploadAccount = cloudinaryManager.getOptimalAccount()
-        setCurrentAccount(currentUploadAccount)
-        
-        console.log(`Upload attempt ${attempt + 1}/${maxRetries} using account: ${currentUploadAccount.cloudName}`)
-        
-        const result = await uploadToCloudinary(file, currentUploadAccount)
-        
-        // Mark account as successful (reset failure count)
-        cloudinaryManager.markAccountSuccess(currentUploadAccount)
-        
-        setUploadStatus('success')
-        onUploadComplete({
-          url: result.secure_url,
-          publicId: result.public_id,
-          duration: Math.round(result.duration || 0), // Convert decimal to integer seconds
-          format: result.format,
-          bytes: result.bytes
+    try {
+      // Simulate progress for better UX
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev.percentage < 90) {
+            return {
+              ...prev,
+              percentage: Math.min(prev.percentage + 5, 90)
+            }
+          }
+          return prev
         })
+      }, 500)
 
-        toast({
-          title: 'Upload successful!',
-          description: `Video uploaded successfully to ${currentUploadAccount.cloudName}. Duration: ${Math.round(result.duration || 0)}s`,
-        })
+      const result = await uploadToSupabase(file)
+      
+      clearInterval(progressInterval)
+      setUploadProgress({ loaded: file.size, total: file.size, percentage: 100 })
+      
+      setUploadStatus('success')
+      setUploadMessage('Upload completed successfully!')
+      
+      onUploadComplete({
+        url: result.secure_url,
+        publicId: result.public_id,
+        duration: Math.round(result.duration || 0),
+        format: result.format,
+        bytes: result.bytes
+      })
 
-        return // Success, exit the retry loop
+      toast({
+        title: 'Upload successful!',
+        description: `Video uploaded successfully. Duration: ${Math.round(result.duration || 0)}s`,
+      })
 
-      } catch (error) {
-        lastError = error instanceof Error ? error : new Error('Upload failed')
-        console.error(`Upload failed on account ${currentUploadAccount?.cloudName}:`, error)
-        
-        // Mark this account as failed for health tracking
-        if (currentUploadAccount) {
-          cloudinaryManager.markAccountFailure(currentUploadAccount, lastError.message)
-        }
-        
-        // Check if it's a storage/quota error that suggests trying another account
-        const errorMessage = lastError.message.toLowerCase()
-        const isStorageError = errorMessage.includes('quota') || 
-                              errorMessage.includes('storage') || 
-                              errorMessage.includes('limit') ||
-                              errorMessage.includes('insufficient') ||
-                              errorMessage.includes('exceeded')
-
-        const shouldRetry = isStorageError || attempt < maxRetries - 1
-
-        if (!shouldRetry) {
-          break // Don't retry for other types of errors on last attempt
-        }
-
-        // Wait a bit before trying next account
-        await new Promise(resolve => setTimeout(resolve, 1000))
-      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Upload failed'
+      console.error('Upload failed:', error)
+      
+      setUploadStatus('error')
+      setError(errorMessage)
+      setUploadMessage('')
+      
+      toast({
+        title: 'Upload failed',
+        description: errorMessage,
+        variant: 'destructive'
+      })
+    } finally {
+      setUploading(false)
     }
-
-    // All accounts failed
-    setUploadStatus('error')
-    setError(lastError?.message || 'Upload failed on all accounts')
-    
-    toast({
-      title: 'Upload failed',
-      description: `Failed on all ${maxRetries} account(s). ${lastError?.message || 'Please try again later.'}`,
-      variant: 'destructive'
-    })
-
-    setUploading(false)
-  }, [file, onUploadComplete, toast, uploadToCloudinary, currentAccount])
+  }, [file, onUploadComplete, toast, uploadToSupabase])
 
   const resetUpload = () => {
     setFile(null)
@@ -267,6 +180,7 @@ export function VideoUploadCloudinary({
     setError(null)
     setUploading(false)
     setPreviewUrl(null)
+    setUploadMessage('')
     
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
@@ -348,7 +262,7 @@ export function VideoUploadCloudinary({
               </div>
               <Progress value={uploadProgress.percentage} className="w-full" />
               <div className="flex justify-between text-xs text-gray-500">
-                <span>Account: {currentAccount?.cloudName}</span>
+                <span>{uploadMessage}</span>
                 <span>
                   {(uploadProgress.loaded / (1024 * 1024)).toFixed(1)}MB / {(uploadProgress.total / (1024 * 1024)).toFixed(1)}MB
                 </span>
@@ -391,9 +305,9 @@ export function VideoUploadCloudinary({
             )}
           </div>
 
-          {/* Account Info */}
+          {/* Upload Info */}
           <div className="text-xs text-gray-500 text-center">
-            Load balancing across {cloudinaryManager.getAccountCount()} Cloudinary accounts
+            Server-side chunked upload via Supabase Edge Functions
           </div>
         </div>
       </CardContent>
