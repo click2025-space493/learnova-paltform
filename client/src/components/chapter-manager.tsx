@@ -110,6 +110,7 @@ export default function ChapterManager({ chapters, onChaptersChange }: ChapterMa
   };
 
   const updateLesson = (chapterId: string, lessonId: string, updates: Partial<Lesson>) => {
+    console.log('Chapter manager updateLesson called:', { chapterId, lessonId, updates });
     const chapter = chapters.find(c => c.id === chapterId);
     if (!chapter) return;
 
@@ -117,10 +118,17 @@ export default function ChapterManager({ chapters, onChaptersChange }: ChapterMa
       lesson.id === lessonId ? { ...lesson, ...updates } : lesson
     );
 
-    updateChapter(chapterId, { lessons: updatedLessons });
+    const updatedChapter = {
+      ...chapter,
+      lessons: updatedLessons
+    };
+
+    console.log('Updated chapter with lessons:', updatedChapter);
+    updateChapter(chapterId, updatedChapter);
   };
 
   const deleteLesson = (chapterId: string, lessonId: string) => {
+    console.log('Chapter manager deleteLesson called:', { chapterId, lessonId });
     const chapter = chapters.find(c => c.id === chapterId);
     if (!chapter) return;
 
