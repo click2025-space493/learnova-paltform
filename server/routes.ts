@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertCourseSchema, insertCourseLessonSchema, insertEnrollmentSchema } from "@shared/schema";
 import { z } from "zod";
+import uploadRoutes from "./upload";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -379,6 +380,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Register upload routes
+  app.use('/api', uploadRoutes);
 
   const httpServer = createServer(app);
   return httpServer;
