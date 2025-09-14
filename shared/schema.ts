@@ -92,9 +92,11 @@ export const courseLessons = pgTable("course_lessons", {
   courseId: varchar("course_id").references(() => courses.id).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
-  videoUrl: varchar("video_url"),
+  videoUrl: varchar("video_url"), // Legacy field - kept for backward compatibility
+  youtubeVideoId: varchar("youtube_video_id", { length: 20 }), // YouTube video ID (11 chars)
+  youtubeVideoUrl: text("youtube_video_url"), // Full YouTube URL
   orderIndex: integer("order_index").default(0),
-  duration: integer("duration"), // in minutes
+  duration: integer("duration"), // in seconds (changed from minutes for precision)
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
