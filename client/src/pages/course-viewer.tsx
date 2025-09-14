@@ -168,6 +168,9 @@ export default function CourseViewer() {
           ...chapter,
           lessons: chapter.lessons?.map((lesson: any) => {
             console.log('Lesson data:', lesson);
+            console.log('YouTube Video ID:', lesson.youtube_video_id);
+            console.log('YouTube Video URL:', lesson.youtube_video_url);
+            console.log('Legacy Video URL:', lesson.video_url);
             return lesson;
           }) || []
         })) || []

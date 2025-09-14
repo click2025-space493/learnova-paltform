@@ -162,6 +162,8 @@ export default function CourseContentManager({ courseId }: CourseContentManagerP
       if (updates.description !== undefined) dbUpdates.description = updates.description;
       if (updates.content !== undefined) dbUpdates.content = updates.content;
       if (updates.video_url !== undefined) dbUpdates.video_url = updates.video_url;
+      if (updates.youtube_video_id !== undefined) dbUpdates.youtube_video_id = updates.youtube_video_id;
+      if (updates.youtube_video_url !== undefined) dbUpdates.youtube_video_url = updates.youtube_video_url;
       if (updates.video_duration !== undefined) dbUpdates.video_duration = updates.video_duration;
       if (updates.type !== undefined) dbUpdates.type = updates.type;
       if (updates.position !== undefined) dbUpdates.position = updates.position;
