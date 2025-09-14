@@ -172,6 +172,7 @@ export default function CourseContentManager({ courseId }: CourseContentManagerP
       if (updates.is_free !== undefined) dbUpdates.is_free = updates.is_free;
 
       console.log('Updating lesson:', lessonId, 'with:', dbUpdates);
+      console.log('Raw updates received:', updates);
 
       const { error } = await supabase
         .from('lessons')
