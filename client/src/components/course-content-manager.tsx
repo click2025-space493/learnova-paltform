@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Plus, GripVertical, Trash2, Edit2, Save, X, Video, FileText } from "lucide-react";
-import { VideoUploadCloudinary } from "./video-upload-cloudinary";
+import { YouTubeVideoInput } from "./YouTubeVideoInput";
 import { useToast } from "@/hooks/use-toast";
 
 interface Lesson {
@@ -19,6 +19,8 @@ interface Lesson {
   type: 'video' | 'text';
   content?: string;
   video_url?: string;
+  youtube_video_id?: string;
+  youtube_video_url?: string;
   video_duration?: number;
   position: number;
   is_free: boolean;
@@ -62,6 +64,8 @@ export default function CourseContentManager({ courseId }: CourseContentManagerP
             type,
             content,
             video_url,
+            youtube_video_id,
+            youtube_video_url,
             video_duration,
             position,
             is_free
@@ -396,20 +400,17 @@ export default function CourseContentManager({ courseId }: CourseContentManagerP
 
                       {lesson.type === 'video' && (
                         <div>
-                          <Label>Video Upload</Label>
-                          <VideoUploadCloudinary
-                            onUploadComplete={(videoData) => {
+                          <Label>YouTube Video</Label>
+                          <YouTubeVideoInput
+                            onVideoSelect={(videoData) => {
                               updateLesson(lesson.id, { 
-                                video_url: videoData.url, 
+                                youtube_video_id: videoData.youtubeVideoId,
+                                youtube_video_url: videoData.youtubeVideoUrl,
                                 video_duration: videoData.duration 
                               });
                             }}
+                            initialUrl={lesson.youtube_video_url}
                           />
-                          {lesson.video_url && (
-                            <p className="text-sm text-muted-foreground mt-2">
-                              Current video: {lesson.video_url}
-                            </p>
-                          )}
                         </div>
                       )}
 

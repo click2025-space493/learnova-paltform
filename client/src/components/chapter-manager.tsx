@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Plus, GripVertical, Trash2, Edit2, Save, X, Video, FileText } from "lucide-react";
-import { VideoUploadCloudinary } from "./video-upload-cloudinary";
+import { YouTubeVideoInput } from "./YouTubeVideoInput";
 import { useToast } from "@/hooks/use-toast";
 
 interface Lesson {
@@ -15,6 +15,8 @@ interface Lesson {
   title: string;
   description: string;
   videoUrl?: string;
+  youtubeVideoId?: string;
+  youtubeVideoUrl?: string;
   videoDuration?: number;
   order: number;
   type: 'video' | 'text';
@@ -296,14 +298,16 @@ export default function ChapterManager({ chapters, onChaptersChange }: ChapterMa
 
                         {lesson.type === 'video' && (
                           <div>
-                            <Label>Video Upload</Label>
-                            <VideoUploadCloudinary
-                              onUploadComplete={(videoData) => {
+                            <Label>YouTube Video</Label>
+                            <YouTubeVideoInput
+                              onVideoSelect={(videoData) => {
                                 updateLesson(chapter.id, lesson.id, { 
-                                  videoUrl: videoData.url, 
+                                  youtubeVideoId: videoData.youtubeVideoId,
+                                  youtubeVideoUrl: videoData.youtubeVideoUrl,
                                   videoDuration: videoData.duration 
                                 });
                               }}
+                              initialUrl={lesson.youtubeVideoUrl}
                             />
                           </div>
                         )}
