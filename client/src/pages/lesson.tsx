@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Clock, User, BookOpen, CheckCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useLessons, useProgress } from "@/hooks/useSupabase";
+import { useProgress } from "@/hooks/useSupabase";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 import { SecureVideoPlayer } from "@/components/SecureVideoPlayer";
 import { useToast } from "@/hooks/use-toast";
 
@@ -20,9 +22,22 @@ export default function Lesson() {
   const [currentProgress, setCurrentProgress] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
 
-  // Fetch lesson data
-  const { data: lessons, isLoading: lessonsLoading } = useLessons(lessonId || '');
-  const lesson = lessons?.find((l: any) => l.id === lessonId);
+  // Fetch lesson data directly by lesson ID
+  const { data: lesson, isLoading: lessonsLoading } = useQuery({
+    queryKey: ['lesson', lessonId],
+    queryFn: async () => {
+      if (!lessonId) return null;
+      const { data, error } = await supabase
+        .from('lessons')
+        .select('*')
+        .eq('id', lessonId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!lessonId
+  });
 
   // Fetch user progress
   const { data: progressData, refetch: refetchProgress } = useProgress(lessonId || '');
