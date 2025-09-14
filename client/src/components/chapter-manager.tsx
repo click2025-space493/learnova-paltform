@@ -310,11 +310,25 @@ export default function ChapterManager({ chapters, onChaptersChange }: ChapterMa
                             <YouTubeVideoInput
                               onVideoSelect={(videoData) => {
                                 console.log('Chapter manager - Video data received:', videoData);
-                                updateLesson(chapter.id, lesson.id, { 
-                                  youtube_video_id: videoData.youtubeVideoId,
-                                  youtube_video_url: videoData.youtubeVideoUrl,
-                                  video_duration: videoData.duration 
+                                console.log('About to call updateLesson with:', { 
+                                  chapterId: chapter.id, 
+                                  lessonId: lesson.id,
+                                  updates: {
+                                    youtube_video_id: videoData.youtubeVideoId,
+                                    youtube_video_url: videoData.youtubeVideoUrl,
+                                    video_duration: videoData.duration 
+                                  }
                                 });
+                                try {
+                                  updateLesson(chapter.id, lesson.id, { 
+                                    youtube_video_id: videoData.youtubeVideoId,
+                                    youtube_video_url: videoData.youtubeVideoUrl,
+                                    video_duration: videoData.duration 
+                                  });
+                                  console.log('updateLesson call completed successfully');
+                                } catch (error) {
+                                  console.error('Error calling updateLesson:', error);
+                                }
                               }}
                               initialUrl={lesson.youtube_video_url}
                             />
