@@ -135,7 +135,9 @@ export default function CourseContentManager({ courseId }: CourseContentManagerP
           description: '',
           type,
           position,
-          is_free: false
+          is_free: false,
+          youtube_video_id: null,
+          youtube_video_url: null
         })
         .select()
         .single();
