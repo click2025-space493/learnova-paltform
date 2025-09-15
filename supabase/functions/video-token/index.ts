@@ -108,31 +108,55 @@ serve(async (req) => {
         )
       }
 
-      // Verify user has access to this lesson/course
-      const { data: enrollment, error: enrollmentError } = await supabase
-        .from('enrollments')
-        .select('id, status')
-        .eq('user_id', user.id)
-        .eq('course_id', courseId)
-        .eq('status', 'active')
+      // Check if user is the teacher of this course
+      const { data: course, error: courseError } = await supabase
+        .from('courses')
+        .select('teacher_id')
+        .eq('id', courseId)
         .single()
 
-      if (enrollmentError || !enrollment) {
+      if (courseError) {
         return new Response(
-          JSON.stringify({ error: 'Access denied: No active enrollment found' }),
-          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Course not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
-      // Verify lesson exists and belongs to the course
+      const isTeacher = course.teacher_id === user.id
+
+      // If not teacher, verify user has active enrollment
+      if (!isTeacher) {
+        const { data: enrollment, error: enrollmentError } = await supabase
+          .from('enrollments')
+          .select('id, status')
+          .eq('user_id', user.id)
+          .eq('course_id', courseId)
+          .eq('status', 'active')
+          .single()
+
+        if (enrollmentError || !enrollment) {
+          return new Response(
+            JSON.stringify({ error: 'Access denied: No active enrollment found' }),
+            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+      }
+
+      // Verify lesson exists and get its chapter info to find course
       const { data: lesson, error: lessonError } = await supabase
         .from('lessons')
-        .select('id, youtube_video_id, course_id')
+        .select(`
+          id, 
+          youtube_video_id,
+          chapter:chapters!inner (
+            course_id
+          )
+        `)
         .eq('id', lessonId)
-        .eq('course_id', courseId)
         .single()
 
-      if (lessonError || !lesson || !lesson.youtube_video_id) {
+      // Verify lesson belongs to the correct course
+      if (lessonError || !lesson || !lesson.youtube_video_id || lesson.chapter.course_id !== courseId) {
         return new Response(
           JSON.stringify({ error: 'Lesson not found or no video available' }),
           { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
