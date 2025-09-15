@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Plus, GripVertical, Trash2, Edit2, Save, X, Video, FileText } from "lucide-react";
 import { YouTubeVideoInput } from "./YouTubeVideoInput";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
 interface Lesson {
   id: string;
@@ -310,25 +311,14 @@ export default function ChapterManager({ chapters, onChaptersChange }: ChapterMa
                             <YouTubeVideoInput
                               onVideoSelect={(videoData) => {
                                 console.log('Chapter manager - Video data received:', videoData);
-                                console.log('About to call updateLesson with:', { 
-                                  chapterId: chapter.id, 
-                                  lessonId: lesson.id,
-                                  updates: {
-                                    youtube_video_id: videoData.youtubeVideoId,
-                                    youtube_video_url: videoData.youtubeVideoUrl,
-                                    video_duration: videoData.duration 
-                                  }
+                                console.log('Storing video data in local state only - will save to DB on Save Lesson');
+                                // Only update local state, don't save to database yet
+                                updateLesson(chapter.id, lesson.id, { 
+                                  youtube_video_id: videoData.youtubeVideoId,
+                                  youtube_video_url: videoData.youtubeVideoUrl,
+                                  video_duration: videoData.duration 
                                 });
-                                try {
-                                  updateLesson(chapter.id, lesson.id, { 
-                                    youtube_video_id: videoData.youtubeVideoId,
-                                    youtube_video_url: videoData.youtubeVideoUrl,
-                                    video_duration: videoData.duration 
-                                  });
-                                  console.log('updateLesson call completed successfully');
-                                } catch (error) {
-                                  console.error('Error calling updateLesson:', error);
-                                }
+                                console.log('Video data stored in local state successfully');
                               }}
                               initialUrl={lesson.youtube_video_url}
                             />
@@ -350,7 +340,46 @@ export default function ChapterManager({ chapters, onChaptersChange }: ChapterMa
                         <div className="flex space-x-2">
                           <Button
                             size="sm"
-                            onClick={() => setEditingLesson(null)}
+                            onClick={async () => {
+                              console.log('Save Lesson clicked - saving to database...');
+                              try {
+                                // Save lesson data to database
+                                const { error } = await supabase
+                                  .from('lessons')
+                                  .update({
+                                    title: lesson.title,
+                                    description: lesson.description,
+                                    content: lesson.content,
+                                    youtube_video_id: lesson.youtube_video_id,
+                                    youtube_video_url: lesson.youtube_video_url,
+                                    video_duration: lesson.video_duration
+                                  })
+                                  .eq('id', lesson.id);
+
+                                if (error) {
+                                  console.error('Database save error:', error);
+                                  toast({
+                                    title: "Save Failed",
+                                    description: "Failed to save lesson to database",
+                                    variant: "destructive",
+                                  });
+                                } else {
+                                  console.log('Lesson saved to database successfully');
+                                  toast({
+                                    title: "Lesson Saved",
+                                    description: "Lesson has been saved successfully",
+                                  });
+                                  setEditingLesson(null);
+                                }
+                              } catch (error) {
+                                console.error('Save lesson error:', error);
+                                toast({
+                                  title: "Save Failed",
+                                  description: "An error occurred while saving",
+                                  variant: "destructive",
+                                });
+                              }
+                            }}
                           >
                             <Save className="h-4 w-4 mr-1" />
                             Save Lesson
