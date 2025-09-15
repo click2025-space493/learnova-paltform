@@ -344,6 +344,11 @@ export default function ChapterManager({ chapters, onChaptersChange, courseId }:
                             onClick={async () => {
                               console.log('Save Lesson clicked - saving to database...');
                               try {
+                                // Check if we have a valid courseId
+                                if (!courseId || courseId === "") {
+                                  throw new Error("Course must be created first before saving lessons");
+                                }
+
                                 // First, ensure chapter exists in database
                                 console.log('Ensuring chapter exists in database...');
                                 const { error: chapterError } = await supabase
