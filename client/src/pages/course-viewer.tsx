@@ -435,6 +435,7 @@ export default function CourseViewer() {
                           className="w-full justify-start p-2 lg:p-3 h-auto text-left"
                           onClick={() => {
                             // Navigate to individual lesson page
+                            console.log('Navigating to lesson:', lesson.id);
                             window.location.href = `/lesson/${lesson.id}`;
                           }}
                         >

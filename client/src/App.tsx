@@ -20,6 +20,7 @@ import SignupTeacher from "@/pages/signup-teacher";
 import SignupStudent from "@/pages/signup-student";
 import Signin from "@/pages/signin";
 import CourseViewer from "@/pages/course-viewer";
+import Lesson from "@/pages/lesson";
 import StudentDashboard from "@/pages/student-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
 import AdminTeachers from "@/pages/admin-teachers";
@@ -41,6 +42,7 @@ function Router() {
       <Route path="/courses" component={Courses} />
       <Route path="/courses/:id" component={CourseDetail} />
       <Route path="/courses/:id/learn" component={CourseViewer} />
+      <Route path="/lesson/:id" component={Lesson} />
       <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/complete-profile" component={CompleteProfile} />
       <Route path="/username-selection" component={UsernameSelection} />
