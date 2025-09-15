@@ -32,6 +32,9 @@ export function SecureVideoPlayer({
   const [videoToken, setVideoToken] = useState<VideoToken | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  
+  // Debug logging
+  console.log('SecureVideoPlayer props:', { lessonId, courseId, studentName, studentId });
   const [player, setPlayer] = useState<any>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
@@ -277,10 +280,11 @@ export function SecureVideoPlayer({
 
   if (loading) {
     return (
-      <div className={`relative bg-black rounded-lg overflow-hidden ${className}`}>
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-white" />
-          <span className="ml-2 text-white">Loading secure video...</span>
+      <div className={`flex items-center justify-center h-64 bg-gray-100 rounded-lg ${className}`}>
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+          <p className="text-sm text-gray-600">Loading secure video...</p>
+          <p className="text-xs text-gray-500 mt-2">Debug: lessonId={lessonId}, courseId={courseId}</p>
         </div>
       </div>
     )
@@ -288,12 +292,17 @@ export function SecureVideoPlayer({
 
   if (error) {
     return (
-      <div className={`relative bg-black rounded-lg overflow-hidden ${className}`}>
-        <div className="flex flex-col items-center justify-center h-64 p-4">
-          <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-          <p className="text-white text-center mb-4">{error}</p>
-          <Button onClick={generateToken} variant="outline">
-            Retry
+      <div className={`flex items-center justify-center h-64 bg-red-50 rounded-lg ${className}`}>
+        <div className="text-center">
+          <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
+          <p className="text-sm text-red-600 mb-4">{error}</p>
+          <p className="text-xs text-gray-500 mb-4">Debug: lessonId={lessonId}, courseId={courseId}</p>
+          <Button
+            onClick={generateToken}
+            size="sm"
+            variant="outline"
+          >
+            Try Again
           </Button>
         </div>
       </div>
