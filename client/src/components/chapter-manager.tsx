@@ -55,7 +55,7 @@ export default function ChapterManager({ chapters, onChaptersChange }: ChapterMa
     }
 
     const newChapter: Chapter = {
-      id: `chapter-${Date.now()}`,
+      id: crypto.randomUUID(),
       title: newChapterTitle,
       description: newChapterDescription,
       order: chapters.length + 1,
@@ -343,48 +343,24 @@ export default function ChapterManager({ chapters, onChaptersChange }: ChapterMa
                             onClick={async () => {
                               console.log('Save Lesson clicked - saving to database...');
                               try {
-                                // First create the lesson in database if it doesn't exist
-                                const { data: existingLesson } = await supabase
+                                // Create or update lesson in database
+                                const { error: upsertError } = await supabase
                                   .from('lessons')
-                                  .select('id')
-                                  .eq('id', lesson.id)
-                                  .single();
-
-                                if (!existingLesson) {
-                                  // Create new lesson
-                                  const { error: insertError } = await supabase
-                                    .from('lessons')
-                                    .insert({
-                                      id: lesson.id,
-                                      chapter_id: chapter.id,
-                                      title: lesson.title,
-                                      description: lesson.description,
-                                      content: lesson.content,
-                                      type: lesson.type,
-                                      position: lesson.order,
-                                      youtube_video_id: lesson.youtube_video_id,
-                                      youtube_video_url: lesson.youtube_video_url,
-                                      video_duration: lesson.video_duration,
-                                      is_free: false
-                                    });
-                                  
-                                  if (insertError) throw insertError;
-                                } else {
-                                  // Update existing lesson
-                                  const { error: updateError } = await supabase
-                                    .from('lessons')
-                                    .update({
-                                      title: lesson.title,
-                                      description: lesson.description,
-                                      content: lesson.content,
-                                      youtube_video_id: lesson.youtube_video_id,
-                                      youtube_video_url: lesson.youtube_video_url,
-                                      video_duration: lesson.video_duration
-                                    })
-                                    .eq('id', lesson.id);
-                                  
-                                  if (updateError) throw updateError;
-                                }
+                                  .upsert({
+                                    id: lesson.id,
+                                    chapter_id: chapter.id,
+                                    title: lesson.title,
+                                    description: lesson.description,
+                                    content: lesson.content,
+                                    type: lesson.type,
+                                    position: lesson.order,
+                                    youtube_video_id: lesson.youtube_video_id,
+                                    youtube_video_url: lesson.youtube_video_url,
+                                    video_duration: lesson.video_duration,
+                                    is_free: false
+                                  });
+                                
+                                if (upsertError) throw upsertError;
 
                                 console.log('Lesson saved to database successfully');
                                 toast({
