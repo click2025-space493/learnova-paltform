@@ -350,7 +350,6 @@ export default function ChapterManager({ chapters, onChaptersChange, courseId }:
                                   .upsert({
                                     id: lesson.id,
                                     chapter_id: chapter.id,
-                                    course_id: courseId,
                                     title: lesson.title,
                                     description: lesson.description,
                                     content: lesson.content,
