@@ -346,7 +346,13 @@ export default function ChapterManager({ chapters, onChaptersChange, courseId }:
                               try {
                                 // Check if we have a valid courseId
                                 if (!courseId || courseId === "") {
-                                  throw new Error("Course must be created first before saving lessons");
+                                  console.log('No courseId - storing YouTube data locally for course creation');
+                                  toast({
+                                    title: "Video Added",
+                                    description: "YouTube video will be saved when you publish the course",
+                                  });
+                                  setEditingLesson(null);
+                                  return;
                                 }
 
                                 // First, ensure chapter exists in database

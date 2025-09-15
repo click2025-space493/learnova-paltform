@@ -44,6 +44,8 @@ interface Chapter {
     description: string;
     videoUrl?: string;
     videoDuration?: number;
+    youtube_video_id?: string;
+    youtube_video_url?: string;
     order: number;
     type: 'video' | 'text';
     content?: string;
@@ -146,6 +148,8 @@ export default function CreateCourseEnhanced() {
               content: lesson.content,
               video_url: lesson.videoUrl,
               video_duration: lesson.videoDuration,
+              youtube_video_id: lesson.youtube_video_id,
+              youtube_video_url: lesson.youtube_video_url,
               position: lesson.order,
               is_free: false
             });
