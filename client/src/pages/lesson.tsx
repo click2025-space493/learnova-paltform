@@ -22,19 +22,38 @@ export default function Lesson() {
   const [currentProgress, setCurrentProgress] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
 
-  // Fetch lesson data directly by lesson ID
+  // Fetch lesson data with chapter and course info
   const { data: lesson, isLoading: lessonsLoading } = useQuery({
     queryKey: ['lesson', lessonId],
     queryFn: async () => {
       if (!lessonId) return null;
       const { data, error } = await supabase
         .from('lessons')
-        .select('*')
+        .select(`
+          *,
+          chapter:chapters!inner (
+            id,
+            course_id,
+            course:courses!inner (
+              id,
+              title
+            )
+          )
+        `)
         .eq('id', lessonId)
         .single();
       
       if (error) throw error;
-      return data;
+      
+      // Flatten the structure for easier access
+      const flattenedData = {
+        ...data,
+        course_id: data.chapter.course_id,
+        course_title: data.chapter.course.title
+      };
+      
+      console.log('Lesson data with course info:', flattenedData);
+      return flattenedData;
     },
     enabled: !!lessonId
   });
