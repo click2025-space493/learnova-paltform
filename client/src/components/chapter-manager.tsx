@@ -94,7 +94,7 @@ export default function ChapterManager({ chapters, onChaptersChange }: ChapterMa
     if (!chapter) return;
 
     const newLesson: Lesson = {
-      id: `lesson-${Date.now()}`,
+      id: crypto.randomUUID(),
       title: `New ${type} lesson`,
       description: "",
       order: chapter.lessons.length + 1,
@@ -343,34 +343,55 @@ export default function ChapterManager({ chapters, onChaptersChange }: ChapterMa
                             onClick={async () => {
                               console.log('Save Lesson clicked - saving to database...');
                               try {
-                                // Save lesson data to database
-                                const { error } = await supabase
+                                // First create the lesson in database if it doesn't exist
+                                const { data: existingLesson } = await supabase
                                   .from('lessons')
-                                  .update({
-                                    title: lesson.title,
-                                    description: lesson.description,
-                                    content: lesson.content,
-                                    youtube_video_id: lesson.youtube_video_id,
-                                    youtube_video_url: lesson.youtube_video_url,
-                                    video_duration: lesson.video_duration
-                                  })
-                                  .eq('id', lesson.id);
+                                  .select('id')
+                                  .eq('id', lesson.id)
+                                  .single();
 
-                                if (error) {
-                                  console.error('Database save error:', error);
-                                  toast({
-                                    title: "Save Failed",
-                                    description: "Failed to save lesson to database",
-                                    variant: "destructive",
-                                  });
+                                if (!existingLesson) {
+                                  // Create new lesson
+                                  const { error: insertError } = await supabase
+                                    .from('lessons')
+                                    .insert({
+                                      id: lesson.id,
+                                      chapter_id: chapter.id,
+                                      title: lesson.title,
+                                      description: lesson.description,
+                                      content: lesson.content,
+                                      type: lesson.type,
+                                      position: lesson.order,
+                                      youtube_video_id: lesson.youtube_video_id,
+                                      youtube_video_url: lesson.youtube_video_url,
+                                      video_duration: lesson.video_duration,
+                                      is_free: false
+                                    });
+                                  
+                                  if (insertError) throw insertError;
                                 } else {
-                                  console.log('Lesson saved to database successfully');
-                                  toast({
-                                    title: "Lesson Saved",
-                                    description: "Lesson has been saved successfully",
-                                  });
-                                  setEditingLesson(null);
+                                  // Update existing lesson
+                                  const { error: updateError } = await supabase
+                                    .from('lessons')
+                                    .update({
+                                      title: lesson.title,
+                                      description: lesson.description,
+                                      content: lesson.content,
+                                      youtube_video_id: lesson.youtube_video_id,
+                                      youtube_video_url: lesson.youtube_video_url,
+                                      video_duration: lesson.video_duration
+                                    })
+                                    .eq('id', lesson.id);
+                                  
+                                  if (updateError) throw updateError;
                                 }
+
+                                console.log('Lesson saved to database successfully');
+                                toast({
+                                  title: "Lesson Saved",
+                                  description: "Lesson has been saved successfully",
+                                });
+                                setEditingLesson(null);
                               } catch (error) {
                                 console.error('Save lesson error:', error);
                                 toast({
