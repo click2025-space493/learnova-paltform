@@ -433,17 +433,10 @@ export default function CourseViewer() {
                           key={lesson.id}
                           variant={currentLesson?.id === lesson.id ? "secondary" : "ghost"}
                           className="w-full justify-start p-2 lg:p-3 h-auto text-left"
-                          onClick={() => selectLesson({
-                            id: lesson.id,
-                            title: lesson.title,
-                            description: lesson.description,
-                            type: lesson.type,
-                            content: lesson.content,
-                            videoUrl: lesson.video_url,
-                            videoDuration: lesson.video_duration,
-                            completed: false,
-                            locked: false
-                          })}
+                          onClick={() => {
+                            // Navigate to individual lesson page
+                            window.location.href = `/lesson/${lesson.id}`;
+                          }}
                         >
                           <div className="flex items-center gap-2 lg:gap-3 w-full min-w-0">
                             <div className="flex-shrink-0">
