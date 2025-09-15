@@ -217,6 +217,19 @@ export default function Lesson() {
               )}
             </div>
 
+            {/* Debug Info - Always show */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <p className="text-blue-800">
+                <strong>Debug Info:</strong><br/>
+                Lesson ID: {lesson.id}<br/>
+                Course ID: {lesson.course_id || 'Not found'}<br/>
+                YouTube Video ID: {lesson.youtube_video_id || 'Not found'}<br/>
+                YouTube Video URL: {lesson.youtube_video_url || 'Not found'}<br/>
+                Video URL (legacy): {lesson.video_url || 'Not found'}<br/>
+                Raw lesson object: {JSON.stringify(lesson, null, 2)}
+              </p>
+            </div>
+
             {/* Video Player */}
             {lesson.youtube_video_id ? (
               <SecureVideoPlayer
@@ -235,26 +248,15 @@ export default function Lesson() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <p className="text-red-800">
-                    <strong>Debug Info:</strong><br/>
-                    Lesson ID: {lesson.id}<br/>
-                    YouTube Video ID: {lesson.youtube_video_id || 'Not found'}<br/>
-                    YouTube Video URL: {lesson.youtube_video_url || 'Not found'}<br/>
-                    Video URL (legacy): {lesson.video_url || 'Not found'}
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <BookOpen className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No Video Available</h3>
+                  <p className="text-muted-foreground">
+                    This lesson doesn't have a video yet. Check back later!
                   </p>
-                </div>
-                <Card>
-                  <CardContent className="p-8 text-center">
-                    <BookOpen className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">No Video Available</h3>
-                    <p className="text-muted-foreground">
-                      This lesson doesn't have a video yet. Check back later!
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
+                </CardContent>
+              </Card>
             )}
 
             {/* Lesson Content */}
