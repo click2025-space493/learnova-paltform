@@ -57,6 +57,7 @@ export default function CreateCourseEnhanced() {
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [activeTab, setActiveTab] = useState("details");
   const [isLoading, setIsLoading] = useState(false);
+  const [courseId, setCourseId] = useState<string | null>(null);
 
   const {
     register,
@@ -114,6 +115,9 @@ export default function CreateCourseEnhanced() {
         .single();
 
       if (courseError) throw courseError;
+
+      // Set courseId for use in ChapterManager
+      setCourseId(course.id);
 
       // Create chapters and lessons
       for (const chapter of chapters) {
@@ -415,6 +419,7 @@ export default function CreateCourseEnhanced() {
             <ChapterManager 
               chapters={chapters} 
               onChaptersChange={setChapters}
+              courseId={courseId || ""}
             />
             
             <div className="flex justify-between">

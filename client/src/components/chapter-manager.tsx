@@ -35,9 +35,10 @@ interface Chapter {
 interface ChapterManagerProps {
   chapters: Chapter[];
   onChaptersChange: (chapters: Chapter[]) => void;
+  courseId: string;
 }
 
-export default function ChapterManager({ chapters, onChaptersChange }: ChapterManagerProps) {
+export default function ChapterManager({ chapters, onChaptersChange, courseId }: ChapterManagerProps) {
   const [editingChapter, setEditingChapter] = useState<string | null>(null);
   const [editingLesson, setEditingLesson] = useState<string | null>(null);
   const [newChapterTitle, setNewChapterTitle] = useState("");
@@ -349,6 +350,7 @@ export default function ChapterManager({ chapters, onChaptersChange }: ChapterMa
                                   .upsert({
                                     id: lesson.id,
                                     chapter_id: chapter.id,
+                                    course_id: courseId,
                                     title: lesson.title,
                                     description: lesson.description,
                                     content: lesson.content,
