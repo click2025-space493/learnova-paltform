@@ -344,7 +344,26 @@ export default function ChapterManager({ chapters, onChaptersChange, courseId }:
                             onClick={async () => {
                               console.log('Save Lesson clicked - saving to database...');
                               try {
-                                // Create or update lesson in database
+                                // First, ensure chapter exists in database
+                                console.log('Ensuring chapter exists in database...');
+                                const { error: chapterError } = await supabase
+                                  .from('chapters')
+                                  .upsert({
+                                    id: chapter.id,
+                                    course_id: courseId,
+                                    title: chapter.title,
+                                    description: chapter.description,
+                                    position: chapter.order
+                                  });
+                                
+                                if (chapterError) {
+                                  console.error('Chapter save error:', chapterError);
+                                  throw chapterError;
+                                }
+                                console.log('Chapter saved/verified in database');
+
+                                // Now save the lesson
+                                console.log('Saving lesson to database...');
                                 const { error: upsertError } = await supabase
                                   .from('lessons')
                                   .upsert({
@@ -361,7 +380,10 @@ export default function ChapterManager({ chapters, onChaptersChange, courseId }:
                                     is_free: false
                                   });
                                 
-                                if (upsertError) throw upsertError;
+                                if (upsertError) {
+                                  console.error('Lesson save error:', upsertError);
+                                  throw upsertError;
+                                }
 
                                 console.log('Lesson saved to database successfully');
                                 toast({
@@ -373,7 +395,7 @@ export default function ChapterManager({ chapters, onChaptersChange, courseId }:
                                 console.error('Save lesson error:', error);
                                 toast({
                                   title: "Save Failed",
-                                  description: "An error occurred while saving",
+                                  description: `Failed to save: ${error instanceof Error ? error.message : 'Unknown error'}`,
                                   variant: "destructive",
                                 });
                               }
