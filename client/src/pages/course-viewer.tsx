@@ -648,9 +648,9 @@ export default function CourseViewer() {
                         onContextMenu={(e) => e.preventDefault()}
                         onDragStart={(e) => e.preventDefault()}
                       />
-                      {/* Block YouTube logo area - prevent redirect to YouTube */}
+                      {/* Block YouTube logo area only - prevent redirect to YouTube */}
                       <div 
-                        className="absolute bottom-2 right-2 w-16 h-6 pointer-events-auto select-none"
+                        className="absolute bottom-2 right-2 w-12 h-4 pointer-events-auto select-none"
                         style={{ 
                           zIndex: 7,
                           userSelect: 'none',
