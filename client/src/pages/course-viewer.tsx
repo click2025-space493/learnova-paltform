@@ -628,14 +628,6 @@ export default function CourseViewer() {
                           WebkitUserSelect: 'none'
                         }}
                       />
-                      {/* Block top-left title area where YouTube link appears */}
-                      <div 
-                        className="absolute top-2 left-2 w-48 h-8 bg-black pointer-events-none select-none"
-                        style={{ 
-                          zIndex: 4,
-                          userSelect: 'none'
-                        }}
-                      />
                       {/* Multiple security overlays */}
                       <div 
                         className="absolute inset-0 pointer-events-none select-none"
@@ -667,33 +659,52 @@ export default function CourseViewer() {
                           return false;
                         }}
                       />
-                      {/* Block control bar area selectively - allow fullscreen but block copy */}
+                      {/* Block YouTube copy link icon specifically */}
                       <div 
-                        className="absolute bottom-0 left-0 right-0 h-12 select-none"
+                        className="absolute bottom-3 right-14 w-6 h-6 pointer-events-auto select-none"
                         style={{ 
-                          zIndex: 3,
+                          zIndex: 8,
                           background: 'transparent',
-                          pointerEvents: 'none'
+                          userSelect: 'none'
+                        }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          return false;
                         }}
                         onMouseDown={(e) => {
-                          // Only intercept copy-related clicks, let everything else pass through
-                          const target = e.target as HTMLElement;
-                          const targetText = target.textContent?.toLowerCase() || '';
-                          const targetTitle = target.title?.toLowerCase() || '';
-                          const targetAriaLabel = target.getAttribute('aria-label')?.toLowerCase() || '';
-                          const targetClass = target.className?.toLowerCase() || '';
-                          
-                          // Only block copy/share operations
-                          if (targetText.includes('copy') || 
-                              targetTitle.includes('copy') || 
-                              targetAriaLabel.includes('copy') ||
-                              targetClass.includes('copy') ||
-                              targetAriaLabel.includes('share') ||
-                              targetTitle.includes('share')) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            return false;
-                          }
+                          e.preventDefault();
+                          e.stopPropagation();
+                          return false;
+                        }}
+                        onMouseUp={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          return false;
+                        }}
+                        onDoubleClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          return false;
+                        }}
+                      />
+                      {/* Block share/more options menu area */}
+                      <div 
+                        className="absolute bottom-3 right-8 w-6 h-6 pointer-events-auto select-none"
+                        style={{ 
+                          zIndex: 8,
+                          background: 'transparent',
+                          userSelect: 'none'
+                        }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          return false;
+                        }}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          return false;
                         }}
                       />
                       {/* Additional security overlay */}
