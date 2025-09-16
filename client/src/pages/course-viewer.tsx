@@ -479,6 +479,49 @@ export default function CourseViewer() {
 
                 {currentLesson.type === 'video' && (currentLesson as any).youtube_video_id ? (
                   <div className="space-y-4">
+                    {/* Developer Tools Prevention */}
+                    <script
+                      dangerouslySetInnerHTML={{
+                        __html: `
+                          // Disable F12, Ctrl+Shift+I, Ctrl+U, Ctrl+S
+                          document.addEventListener('keydown', function(e) {
+                            if (e.key === 'F12' || 
+                                (e.ctrlKey && e.shiftKey && e.key === 'I') ||
+                                (e.ctrlKey && e.shiftKey && e.key === 'C') ||
+                                (e.ctrlKey && e.shiftKey && e.key === 'J') ||
+                                (e.ctrlKey && e.key === 'u') ||
+                                (e.ctrlKey && e.key === 's')) {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              return false;
+                            }
+                          });
+                          
+                          // Disable right-click globally
+                          document.addEventListener('contextmenu', function(e) {
+                            e.preventDefault();
+                            return false;
+                          });
+                          
+                          // Detect developer tools
+                          let devtools = {open: false, orientation: null};
+                          const threshold = 160;
+                          setInterval(function() {
+                            if (window.outerHeight - window.innerHeight > threshold || 
+                                window.outerWidth - window.innerWidth > threshold) {
+                              if (!devtools.open) {
+                                devtools.open = true;
+                                document.body.innerHTML = '<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;z-index:999999;">Access Denied</div>';
+                              }
+                            }
+                          }, 500);
+                          
+                          // Disable text selection
+                          document.onselectstart = function() { return false; };
+                          document.onmousedown = function() { return false; };
+                        `
+                      }}
+                    />
                     <div 
                       className="aspect-video rounded-lg overflow-hidden bg-black shadow-lg relative select-none"
                       style={{ 
@@ -491,8 +534,8 @@ export default function CourseViewer() {
                       onDragStart={(e) => e.preventDefault()}
                     >
                       <iframe
-                        src={`https://www.youtube-nocookie.com/embed/${(currentLesson as any).youtube_video_id}?rel=0&modestbranding=1&showinfo=0&controls=1&disablekb=1&fs=1&iv_load_policy=3&cc_load_policy=0&playsinline=1&origin=${window.location.origin}&enablejsapi=0`}
-                        title={currentLesson.title}
+                        src={`https://www.youtube-nocookie.com/embed/${(currentLesson as any).youtube_video_id}?rel=0&modestbranding=1&showinfo=0&controls=1&disablekb=1&fs=1&iv_load_policy=3&cc_load_policy=0&playsinline=1&origin=${window.location.origin}&enablejsapi=0&title=0`}
+                        title=""
                         className="w-full h-full select-none"
                         frameBorder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
@@ -506,7 +549,15 @@ export default function CourseViewer() {
                           WebkitUserSelect: 'none'
                         }}
                       />
-                      {/* Invisible overlay to prevent text selection and copying */}
+                      {/* Block top-left title area where YouTube link appears */}
+                      <div 
+                        className="absolute top-2 left-2 w-48 h-8 bg-black pointer-events-none select-none"
+                        style={{ 
+                          zIndex: 4,
+                          userSelect: 'none'
+                        }}
+                      />
+                      {/* Multiple security overlays */}
                       <div 
                         className="absolute inset-0 pointer-events-none select-none"
                         style={{ 
@@ -524,6 +575,14 @@ export default function CourseViewer() {
                         style={{ 
                           zIndex: 2,
                           userSelect: 'none'
+                        }}
+                      />
+                      {/* Additional security overlay */}
+                      <div 
+                        className="absolute inset-0 pointer-events-none"
+                        style={{ 
+                          zIndex: 3,
+                          background: 'linear-gradient(45deg, transparent 49%, rgba(0,0,0,0.01) 50%, transparent 51%)'
                         }}
                       />
                     </div>
