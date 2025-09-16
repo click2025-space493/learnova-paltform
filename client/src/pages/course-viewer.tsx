@@ -66,6 +66,85 @@ export default function CourseViewer() {
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
   const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
 
+  // Global security measures for the entire course page
+  useEffect(() => {
+    // Block all function keys and developer tools shortcuts
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Block all F keys (F1-F12)
+      if (e.key.startsWith('F') && e.key.length <= 3) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+      
+      // Block developer tools shortcuts
+      if ((e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) ||
+          (e.ctrlKey && (e.key === 'u' || e.key === 'U')) ||
+          (e.ctrlKey && (e.key === 's' || e.key === 'S')) ||
+          ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C' || e.key === 'x' || e.key === 'X' || e.key === 'v' || e.key === 'V'))) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+    };
+
+    // Disable right-click globally
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      return false;
+    };
+
+    // Block clipboard operations
+    const handleCopy = (e: ClipboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    };
+
+    // Disable text selection
+    const handleSelectStart = () => false;
+    const handleMouseDown = () => false;
+
+    // Detect developer tools
+    let devtools = { open: false };
+    const threshold = 160;
+    const detectDevTools = () => {
+      if (window.outerHeight - window.innerHeight > threshold || 
+          window.outerWidth - window.innerWidth > threshold) {
+        if (!devtools.open) {
+          devtools.open = true;
+          document.body.innerHTML = '<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;z-index:999999;">Access Denied - Developer Tools Detected</div>';
+        }
+      }
+    };
+
+    // Override clipboard API
+    if (navigator.clipboard) {
+      (navigator.clipboard as any).writeText = () => Promise.reject('Clipboard access denied');
+    }
+
+    // Add event listeners
+    document.addEventListener('keydown', handleKeyDown, true);
+    document.addEventListener('contextmenu', handleContextMenu, true);
+    document.addEventListener('copy', handleCopy, true);
+    document.addEventListener('cut', handleCopy, true);
+    document.onselectstart = handleSelectStart;
+    document.onmousedown = handleMouseDown;
+    
+    const devToolsInterval = setInterval(detectDevTools, 500);
+
+    // Cleanup on unmount
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown, true);
+      document.removeEventListener('contextmenu', handleContextMenu, true);
+      document.removeEventListener('copy', handleCopy, true);
+      document.removeEventListener('cut', handleCopy, true);
+      document.onselectstart = null;
+      document.onmousedown = null;
+      clearInterval(devToolsInterval);
+    };
+  }, []);
+
   // Check if user is enrolled in the course or has approved enrollment request
   const { data: enrollment, isLoading: enrollmentLoading, error: enrollmentError } = useQuery({
     queryKey: ['enrollment', params?.id, user?.id],
@@ -577,11 +656,44 @@ export default function CourseViewer() {
                           userSelect: 'none'
                         }}
                       />
+                      {/* Block YouTube copy link icon area (appears on hover near controls) */}
+                      <div 
+                        className="absolute bottom-8 right-2 w-20 h-10 bg-black pointer-events-auto select-none"
+                        style={{ 
+                          zIndex: 5,
+                          userSelect: 'none'
+                        }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          return false;
+                        }}
+                      />
+                      {/* Block entire control bar area where copy icon might appear */}
+                      <div 
+                        className="absolute bottom-0 left-0 right-0 h-12 pointer-events-auto select-none"
+                        style={{ 
+                          zIndex: 3,
+                          background: 'transparent'
+                        }}
+                        onClick={(e) => {
+                          // Allow video controls but block any copy operations
+                          const target = e.target as HTMLElement;
+                          if (target.textContent?.includes('copy') || 
+                              target.title?.includes('copy') || 
+                              target.getAttribute('aria-label')?.includes('copy') ||
+                              target.className?.includes('copy')) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            return false;
+                          }
+                        }}
+                      />
                       {/* Additional security overlay */}
                       <div 
                         className="absolute inset-0 pointer-events-none"
                         style={{ 
-                          zIndex: 3,
+                          zIndex: 1,
                           background: 'linear-gradient(45deg, transparent 49%, rgba(0,0,0,0.01) 50%, transparent 51%)'
                         }}
                       />
