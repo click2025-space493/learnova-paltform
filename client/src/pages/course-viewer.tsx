@@ -457,21 +457,6 @@ export default function CourseViewer() {
                             </div>
                           </Button>
                           
-                          {/* Show video directly in sidebar if selected and has YouTube video */}
-                          {currentLesson?.id === lesson.id && lesson.type === 'video' && lesson.youtube_video_id && (
-                            <div className="ml-6 mr-2">
-                              <div className="aspect-video rounded-lg overflow-hidden bg-black">
-                                <iframe
-                                  src={`https://www.youtube.com/embed/${lesson.youtube_video_id}?rel=0&modestbranding=1`}
-                                  title={lesson.title}
-                                  className="w-full h-full"
-                                  frameBorder="0"
-                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                  allowFullScreen
-                                />
-                              </div>
-                            </div>
-                          )}
                         </div>
                       ))}
                     </div>
