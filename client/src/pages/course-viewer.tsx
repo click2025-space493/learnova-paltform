@@ -648,20 +648,22 @@ export default function CourseViewer() {
                         onContextMenu={(e) => e.preventDefault()}
                         onDragStart={(e) => e.preventDefault()}
                       />
-                      {/* Block YouTube logo area */}
+                      {/* Block YouTube logo area - transparent but unclickable */}
                       <div 
-                        className="absolute bottom-2 right-2 w-16 h-6 bg-black pointer-events-none select-none"
+                        className="absolute bottom-2 right-2 w-16 h-6 pointer-events-none select-none"
                         style={{ 
                           zIndex: 2,
-                          userSelect: 'none'
+                          userSelect: 'none',
+                          background: 'transparent'
                         }}
                       />
-                      {/* Block YouTube copy link icon area (appears on hover near controls) */}
+                      {/* Block YouTube copy link icon area (appears on hover near controls) - transparent but unclickable */}
                       <div 
-                        className="absolute bottom-8 right-2 w-20 h-10 bg-black pointer-events-auto select-none"
+                        className="absolute bottom-8 right-2 w-20 h-10 pointer-events-auto select-none"
                         style={{ 
                           zIndex: 5,
-                          userSelect: 'none'
+                          userSelect: 'none',
+                          background: 'transparent'
                         }}
                         onClick={(e) => {
                           e.preventDefault();
