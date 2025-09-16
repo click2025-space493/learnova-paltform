@@ -429,37 +429,50 @@ export default function CourseViewer() {
                   {expandedChapters.has(chapter.id) && (
                     <div className="ml-2 lg:ml-4 mt-2 space-y-1 lg:space-y-2">
                       {chapter.lessons.map((lesson: any) => (
-                        <Button
-                          key={lesson.id}
-                          variant={currentLesson?.id === lesson.id ? "secondary" : "ghost"}
-                          className="w-full justify-start p-2 lg:p-3 h-auto text-left"
-                          onClick={() => {
-                            // Navigate to individual lesson page
-                            console.log('Navigating to lesson:', lesson.id);
-                            window.location.href = `/lesson/${lesson.id}`;
-                          }}
-                        >
-                          <div className="flex items-center gap-2 lg:gap-3 w-full min-w-0">
-                            <div className="flex-shrink-0">
-                              {lesson.type === 'video' ? (
-                                <Video className="h-3 w-3 lg:h-4 lg:w-4 text-primary" />
-                              ) : (
-                                <BookOpen className="h-3 w-3 lg:h-4 lg:w-4 text-secondary" />
-                              )}
-                            </div>
-                            <div className="flex-1 text-left min-w-0">
-                              <div className="text-xs lg:text-sm font-medium truncate">{lesson.title}</div>
-                              <div className="flex items-center gap-1 lg:gap-2 text-xs text-muted-foreground">
-                                {lesson.video_duration && (
-                                  <>
-                                    <Clock className="h-3 w-3" />
-                                    <span>{formatDuration(lesson.video_duration)}</span>
-                                  </>
+                        <div key={lesson.id} className="space-y-2">
+                          <Button
+                            variant={currentLesson?.id === lesson.id ? "secondary" : "ghost"}
+                            className="w-full justify-start p-2 lg:p-3 h-auto text-left"
+                            onClick={() => setCurrentLesson(lesson)}
+                          >
+                            <div className="flex items-center gap-2 lg:gap-3 w-full min-w-0">
+                              <div className="flex-shrink-0">
+                                {lesson.type === 'video' ? (
+                                  <Video className="h-3 w-3 lg:h-4 lg:w-4 text-primary" />
+                                ) : (
+                                  <BookOpen className="h-3 w-3 lg:h-4 lg:w-4 text-secondary" />
                                 )}
                               </div>
+                              <div className="flex-1 text-left min-w-0">
+                                <div className="text-xs lg:text-sm font-medium truncate">{lesson.title}</div>
+                                <div className="flex items-center gap-1 lg:gap-2 text-xs text-muted-foreground">
+                                  {lesson.video_duration && (
+                                    <>
+                                      <Clock className="h-3 w-3" />
+                                      <span>{formatDuration(lesson.video_duration)}</span>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </Button>
+                          </Button>
+                          
+                          {/* Show video directly in sidebar if selected and has YouTube video */}
+                          {currentLesson?.id === lesson.id && lesson.type === 'video' && lesson.youtube_video_id && (
+                            <div className="ml-6 mr-2">
+                              <div className="aspect-video rounded-lg overflow-hidden bg-black">
+                                <iframe
+                                  src={`https://www.youtube.com/embed/${lesson.youtube_video_id}?rel=0&modestbranding=1`}
+                                  title={lesson.title}
+                                  className="w-full h-full"
+                                  frameBorder="0"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
                   )}

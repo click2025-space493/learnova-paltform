@@ -101,6 +101,8 @@ serve(async (req) => {
       // Generate video access token
       const { lessonId, courseId } = await req.json()
 
+      console.log('Video token request:', { lessonId, courseId, userId: user.id })
+
       if (!lessonId || !courseId) {
         return new Response(
           JSON.stringify({ error: 'lessonId and courseId are required' }),
