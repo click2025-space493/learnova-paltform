@@ -479,30 +479,52 @@ export default function CourseViewer() {
 
                 {currentLesson.type === 'video' && (currentLesson as any).youtube_video_id ? (
                   <div className="space-y-4">
-                    <div className="aspect-video rounded-lg overflow-hidden bg-black shadow-lg relative">
+                    <div 
+                      className="aspect-video rounded-lg overflow-hidden bg-black shadow-lg relative select-none"
+                      style={{ 
+                        userSelect: 'none',
+                        WebkitUserSelect: 'none',
+                        MozUserSelect: 'none',
+                        msUserSelect: 'none'
+                      }}
+                      onContextMenu={(e) => e.preventDefault()}
+                      onDragStart={(e) => e.preventDefault()}
+                    >
                       <iframe
-                        src={`https://www.youtube-nocookie.com/embed/${(currentLesson as any).youtube_video_id}?rel=0&modestbranding=1&showinfo=0&controls=1&disablekb=1&fs=0&iv_load_policy=3&cc_load_policy=0&playsinline=1&origin=${window.location.origin}&enablejsapi=0`}
+                        src={`https://www.youtube-nocookie.com/embed/${(currentLesson as any).youtube_video_id}?rel=0&modestbranding=1&showinfo=0&controls=1&disablekb=1&fs=1&iv_load_policy=3&cc_load_policy=0&playsinline=1&origin=${window.location.origin}&enablejsapi=0`}
                         title={currentLesson.title}
-                        className="w-full h-full pointer-events-auto"
+                        className="w-full h-full select-none"
                         frameBorder="0"
-                        allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen={false}
-                        sandbox="allow-scripts allow-same-origin"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                        allowFullScreen={true}
+                        sandbox="allow-scripts allow-same-origin allow-presentation"
                         onContextMenu={(e) => e.preventDefault()}
-                        style={{ pointerEvents: 'auto' }}
-                      />
-                      {/* Overlay to prevent right-click and hide YouTube branding */}
-                      <div 
-                        className="absolute inset-0 pointer-events-none"
+                        onDragStart={(e) => e.preventDefault()}
                         style={{ 
-                          background: 'linear-gradient(transparent 85%, rgba(0,0,0,0.8) 100%)',
-                          zIndex: 1
+                          pointerEvents: 'auto',
+                          userSelect: 'none',
+                          WebkitUserSelect: 'none'
                         }}
+                      />
+                      {/* Invisible overlay to prevent text selection and copying */}
+                      <div 
+                        className="absolute inset-0 pointer-events-none select-none"
+                        style={{ 
+                          background: 'transparent',
+                          zIndex: 1,
+                          userSelect: 'none',
+                          WebkitUserSelect: 'none'
+                        }}
+                        onContextMenu={(e) => e.preventDefault()}
+                        onDragStart={(e) => e.preventDefault()}
                       />
                       {/* Block YouTube logo area */}
                       <div 
-                        className="absolute bottom-2 right-2 w-16 h-6 bg-black pointer-events-none"
-                        style={{ zIndex: 2 }}
+                        className="absolute bottom-2 right-2 w-16 h-6 bg-black pointer-events-none select-none"
+                        style={{ 
+                          zIndex: 2,
+                          userSelect: 'none'
+                        }}
                       />
                     </div>
                     <div className="flex justify-between items-center">
