@@ -477,22 +477,37 @@ export default function CourseViewer() {
                   <p className="text-sm lg:text-base text-muted-foreground">{currentLesson.description}</p>
                 </div>
 
-                {currentLesson.type === 'video' && currentLesson.youtube_video_id ? (
+                {currentLesson.type === 'video' && (currentLesson as any).youtube_video_id ? (
                   <div className="space-y-4">
-                    <div className="aspect-video rounded-lg overflow-hidden bg-black shadow-lg">
+                    <div className="aspect-video rounded-lg overflow-hidden bg-black shadow-lg relative">
                       <iframe
-                        src={`https://www.youtube-nocookie.com/embed/${currentLesson.youtube_video_id}?rel=0&modestbranding=1&showinfo=0&controls=1&disablekb=1&fs=0&iv_load_policy=3&cc_load_policy=0&playsinline=1&origin=${window.location.origin}`}
+                        src={`https://www.youtube-nocookie.com/embed/${(currentLesson as any).youtube_video_id}?rel=0&modestbranding=1&showinfo=0&controls=1&disablekb=1&fs=0&iv_load_policy=3&cc_load_policy=0&playsinline=1&origin=${window.location.origin}&enablejsapi=0`}
                         title={currentLesson.title}
-                        className="w-full h-full"
+                        className="w-full h-full pointer-events-auto"
                         frameBorder="0"
                         allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen={false}
                         sandbox="allow-scripts allow-same-origin"
+                        onContextMenu={(e) => e.preventDefault()}
+                        style={{ pointerEvents: 'auto' }}
+                      />
+                      {/* Overlay to prevent right-click and hide YouTube branding */}
+                      <div 
+                        className="absolute inset-0 pointer-events-none"
+                        style={{ 
+                          background: 'linear-gradient(transparent 85%, rgba(0,0,0,0.8) 100%)',
+                          zIndex: 1
+                        }}
+                      />
+                      {/* Block YouTube logo area */}
+                      <div 
+                        className="absolute bottom-2 right-2 w-16 h-6 bg-black pointer-events-none"
+                        style={{ zIndex: 2 }}
                       />
                     </div>
                     <div className="flex justify-between items-center">
                       <div className="text-sm text-muted-foreground">
-                        {currentLesson.video_duration && `Duration: ${formatDuration(currentLesson.video_duration)}`}
+                        {(currentLesson as any).video_duration && `Duration: ${formatDuration((currentLesson as any).video_duration)}`}
                       </div>
                       <Button onClick={() => markLessonComplete(currentLesson.id)}>
                         <CheckCircle className="h-4 w-4 mr-2" />
