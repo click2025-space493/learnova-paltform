@@ -671,7 +671,31 @@ export default function CourseViewer() {
                           return false;
                         }}
                       />
-                      {/* Block entire control bar area where copy icon might appear */}
+                      {/* Block specific copy link icon area only */}
+                      <div 
+                        className="absolute bottom-2 right-20 w-8 h-8 pointer-events-auto select-none"
+                        style={{ 
+                          zIndex: 6,
+                          background: 'transparent'
+                        }}
+                        onClick={(e) => {
+                          // Block copy link icon specifically
+                          e.preventDefault();
+                          e.stopPropagation();
+                          return false;
+                        }}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          return false;
+                        }}
+                        onMouseUp={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          return false;
+                        }}
+                      />
+                      {/* Block control bar area selectively - allow fullscreen but block copy */}
                       <div 
                         className="absolute bottom-0 left-0 right-0 h-12 pointer-events-auto select-none"
                         style={{ 
@@ -679,15 +703,32 @@ export default function CourseViewer() {
                           background: 'transparent'
                         }}
                         onClick={(e) => {
-                          // Allow video controls but block any copy operations
+                          // Allow most video controls but block copy operations
                           const target = e.target as HTMLElement;
-                          if (target.textContent?.includes('copy') || 
-                              target.title?.includes('copy') || 
-                              target.getAttribute('aria-label')?.includes('copy') ||
-                              target.className?.includes('copy')) {
+                          const targetText = target.textContent?.toLowerCase() || '';
+                          const targetTitle = target.title?.toLowerCase() || '';
+                          const targetAriaLabel = target.getAttribute('aria-label')?.toLowerCase() || '';
+                          const targetClass = target.className?.toLowerCase() || '';
+                          
+                          // Block copy-related elements
+                          if (targetText.includes('copy') || 
+                              targetTitle.includes('copy') || 
+                              targetAriaLabel.includes('copy') ||
+                              targetClass.includes('copy') ||
+                              targetAriaLabel.includes('share') ||
+                              targetTitle.includes('share')) {
                             e.preventDefault();
                             e.stopPropagation();
                             return false;
+                          }
+                          
+                          // Allow fullscreen and other controls to pass through
+                          if (targetAriaLabel.includes('fullscreen') || 
+                              targetTitle.includes('fullscreen') ||
+                              targetClass.includes('fullscreen') ||
+                              targetAriaLabel.includes('theater') ||
+                              targetTitle.includes('theater')) {
+                            return true;
                           }
                         }}
                       />
