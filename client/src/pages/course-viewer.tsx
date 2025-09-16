@@ -481,12 +481,13 @@ export default function CourseViewer() {
                   <div className="space-y-4">
                     <div className="aspect-video rounded-lg overflow-hidden bg-black shadow-lg">
                       <iframe
-                        src={`https://www.youtube.com/embed/${currentLesson.youtube_video_id}?rel=0&modestbranding=1&showinfo=0`}
+                        src={`https://www.youtube-nocookie.com/embed/${currentLesson.youtube_video_id}?rel=0&modestbranding=1&showinfo=0&controls=1&disablekb=1&fs=0&iv_load_policy=3&cc_load_policy=0&playsinline=1&origin=${window.location.origin}`}
                         title={currentLesson.title}
                         className="w-full h-full"
                         frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
+                        allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen={false}
+                        sandbox="allow-scripts allow-same-origin"
                       />
                     </div>
                     <div className="flex justify-between items-center">
