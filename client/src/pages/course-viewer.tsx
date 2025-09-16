@@ -492,7 +492,29 @@ export default function CourseViewer() {
                   <p className="text-sm lg:text-base text-muted-foreground">{currentLesson.description}</p>
                 </div>
 
-                {currentLesson.type === 'video' && currentLesson.videoUrl ? (
+                {currentLesson.type === 'video' && currentLesson.youtube_video_id ? (
+                  <div className="space-y-4">
+                    <div className="aspect-video rounded-lg overflow-hidden bg-black shadow-lg">
+                      <iframe
+                        src={`https://www.youtube.com/embed/${currentLesson.youtube_video_id}?rel=0&modestbranding=1&showinfo=0`}
+                        title={currentLesson.title}
+                        className="w-full h-full"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="text-sm text-muted-foreground">
+                        {currentLesson.video_duration && `Duration: ${formatDuration(currentLesson.video_duration)}`}
+                      </div>
+                      <Button onClick={() => markLessonComplete(currentLesson.id)}>
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Mark as Complete
+                      </Button>
+                    </div>
+                  </div>
+                ) : currentLesson.type === 'video' && currentLesson.videoUrl ? (
                   <VideoPlayer
                     videoUrl={currentLesson.videoUrl}
                     title={currentLesson.title}
