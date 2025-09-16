@@ -648,38 +648,15 @@ export default function CourseViewer() {
                         onContextMenu={(e) => e.preventDefault()}
                         onDragStart={(e) => e.preventDefault()}
                       />
-                      {/* Block YouTube logo area - transparent but unclickable */}
+                      {/* Block YouTube logo area - prevent redirect to YouTube */}
                       <div 
-                        className="absolute bottom-2 right-2 w-16 h-6 pointer-events-none select-none"
+                        className="absolute bottom-2 right-2 w-16 h-6 pointer-events-auto select-none"
                         style={{ 
-                          zIndex: 2,
-                          userSelect: 'none',
-                          background: 'transparent'
-                        }}
-                      />
-                      {/* Block YouTube copy link icon area (appears on hover near controls) - transparent but unclickable */}
-                      <div 
-                        className="absolute bottom-8 right-2 w-20 h-10 pointer-events-auto select-none"
-                        style={{ 
-                          zIndex: 5,
+                          zIndex: 7,
                           userSelect: 'none',
                           background: 'transparent'
                         }}
                         onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          return false;
-                        }}
-                      />
-                      {/* Block specific copy link icon area only */}
-                      <div 
-                        className="absolute bottom-2 right-20 w-8 h-8 pointer-events-auto select-none"
-                        style={{ 
-                          zIndex: 6,
-                          background: 'transparent'
-                        }}
-                        onClick={(e) => {
-                          // Block copy link icon specifically
                           e.preventDefault();
                           e.stopPropagation();
                           return false;
@@ -689,28 +666,24 @@ export default function CourseViewer() {
                           e.stopPropagation();
                           return false;
                         }}
-                        onMouseUp={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          return false;
-                        }}
                       />
                       {/* Block control bar area selectively - allow fullscreen but block copy */}
                       <div 
-                        className="absolute bottom-0 left-0 right-0 h-12 pointer-events-auto select-none"
+                        className="absolute bottom-0 left-0 right-0 h-12 select-none"
                         style={{ 
                           zIndex: 3,
-                          background: 'transparent'
+                          background: 'transparent',
+                          pointerEvents: 'none'
                         }}
-                        onClick={(e) => {
-                          // Allow most video controls but block copy operations
+                        onMouseDown={(e) => {
+                          // Only intercept copy-related clicks, let everything else pass through
                           const target = e.target as HTMLElement;
                           const targetText = target.textContent?.toLowerCase() || '';
                           const targetTitle = target.title?.toLowerCase() || '';
                           const targetAriaLabel = target.getAttribute('aria-label')?.toLowerCase() || '';
                           const targetClass = target.className?.toLowerCase() || '';
                           
-                          // Block copy-related elements
+                          // Only block copy/share operations
                           if (targetText.includes('copy') || 
                               targetTitle.includes('copy') || 
                               targetAriaLabel.includes('copy') ||
@@ -720,15 +693,6 @@ export default function CourseViewer() {
                             e.preventDefault();
                             e.stopPropagation();
                             return false;
-                          }
-                          
-                          // Allow fullscreen and other controls to pass through
-                          if (targetAriaLabel.includes('fullscreen') || 
-                              targetTitle.includes('fullscreen') ||
-                              targetClass.includes('fullscreen') ||
-                              targetAriaLabel.includes('theater') ||
-                              targetTitle.includes('theater')) {
-                            return true;
                           }
                         }}
                       />
