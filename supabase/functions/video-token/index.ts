@@ -148,7 +148,7 @@ serve(async (req) => {
         .select(`
           id, 
           youtube_video_id,
-          chapter:chapters!inner (
+          chapters!inner (
             course_id
           )
         `)
@@ -156,7 +156,7 @@ serve(async (req) => {
         .single()
 
       // Verify lesson belongs to the correct course
-      if (lessonError || !lesson || !lesson.youtube_video_id || lesson.chapter.course_id !== courseId) {
+      if (lessonError || !lesson || !lesson.youtube_video_id || lesson.chapters.course_id !== courseId) {
         return new Response(
           JSON.stringify({ error: 'Lesson not found or no video available' }),
           { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
