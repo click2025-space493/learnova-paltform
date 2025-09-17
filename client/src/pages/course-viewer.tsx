@@ -613,7 +613,7 @@ export default function CourseViewer() {
                       onDragStart={(e) => e.preventDefault()}
                     >
                       <iframe
-                        src={`https://www.youtube-nocookie.com/embed/${(currentLesson as any).youtube_video_id}?rel=0&modestbranding=1&showinfo=0&controls=1&disablekb=1&fs=1&iv_load_policy=3&cc_load_policy=0&playsinline=1&origin=${window.location.origin}&enablejsapi=0&title=0`}
+                        src={`https://www.youtube-nocookie.com/embed/${(currentLesson as any).youtube_video_id}?rel=0&modestbranding=1&showinfo=0&controls=0&disablekb=1&fs=1&iv_load_policy=3&cc_load_policy=0&playsinline=1&origin=${window.location.origin}&enablejsapi=1&title=0`}
                         title=""
                         className="w-full h-full select-none"
                         frameBorder="0"
