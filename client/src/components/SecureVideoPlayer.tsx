@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { useToast } from '@/hooks/use-toast'
 import { Loader2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { CustomYouTubePlayer } from './CustomYouTubePlayer'
+import { SecureYouTubePlayer } from './SecureYouTubePlayer'
 
 interface SecureVideoPlayerProps {
   lessonId: string
@@ -131,7 +131,7 @@ export function SecureVideoPlayer({
   }
 
   return (
-    <CustomYouTubePlayer
+    <SecureYouTubePlayer
       videoId={videoToken?.videoId || ''}
       studentName={studentName}
       studentId={studentId}

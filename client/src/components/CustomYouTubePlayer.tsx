@@ -108,9 +108,9 @@ export function CustomYouTubePlayer({
     if (!playerRef.current || !videoId) return
 
     try {
-      // Create iframe element for YouTube embed
+      // Create iframe element for YouTube embed with maximum restrictions
       const iframe = document.createElement('iframe')
-      iframe.src = `https://www.youtube.com/embed/${videoId}?` + new URLSearchParams({
+      iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?` + new URLSearchParams({
         autoplay: autoplay ? '1' : '0',
         controls: '0', // Disable YouTube controls completely
         disablekb: '1', // Disable keyboard controls
@@ -122,7 +122,15 @@ export function CustomYouTubePlayer({
         cc_load_policy: '0', // Disable captions by default
         playsinline: '1', // Play inline on mobile
         origin: window.location.origin,
-        enablejsapi: '1'
+        enablejsapi: '1',
+        start: '0',
+        end: '0',
+        loop: '0',
+        playlist: '',
+        color: 'white',
+        hl: 'en',
+        cc_lang_pref: 'en',
+        widget_referrer: window.location.origin
       }).toString()
       
       iframe.width = '100%'
@@ -131,6 +139,8 @@ export function CustomYouTubePlayer({
       iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
       iframe.allowFullscreen = false // Disable YouTube's fullscreen
       iframe.style.pointerEvents = 'none' // Disable direct interaction
+      iframe.style.border = 'none'
+      iframe.style.outline = 'none'
       
       // Clear previous content
       playerRef.current.innerHTML = ''
@@ -287,6 +297,24 @@ export function CustomYouTubePlayer({
           </div>
         </div>
 
+        {/* YouTube UI blocking overlay - covers any potential YouTube controls */}
+        <div className="absolute inset-0 pointer-events-none z-20 bg-transparent">
+          {/* Block top area where YouTube controls might appear */}
+          <div className="absolute top-0 left-0 right-0 h-12 bg-transparent pointer-events-auto" 
+               style={{ cursor: 'default' }}
+               onClick={(e) => e.stopPropagation()} />
+          
+          {/* Block bottom-right corner where share/copy buttons typically appear */}
+          <div className="absolute bottom-0 right-0 w-32 h-16 bg-transparent pointer-events-auto"
+               style={{ cursor: 'default' }}
+               onClick={(e) => e.stopPropagation()} />
+          
+          {/* Block center-right area for any floating controls */}
+          <div className="absolute top-1/2 right-0 w-16 h-24 bg-transparent pointer-events-auto transform -translate-y-1/2"
+               style={{ cursor: 'default' }}
+               onClick={(e) => e.stopPropagation()} />
+        </div>
+
         {/* Anti-screenshot overlay */}
         <div className="absolute inset-0 pointer-events-none z-10 bg-transparent" />
       </div>
@@ -294,7 +322,7 @@ export function CustomYouTubePlayer({
   )
 }
 
-// Custom CSS to hide YouTube branding and sharing options
+// Custom CSS to aggressively hide YouTube branding and sharing options
 const customStyles = `
   /* Hide YouTube logo and branding */
   .plyr__video-embed iframe {
@@ -311,7 +339,7 @@ const customStyles = `
     background: rgba(0, 0, 0, 0.9);
   }
   
-  /* Hide any YouTube elements that might appear */
+  /* Aggressively hide ALL YouTube elements that might appear */
   .plyr--youtube .ytp-chrome-top,
   .plyr--youtube .ytp-chrome-bottom,
   .plyr--youtube .ytp-watermark,
@@ -320,15 +348,64 @@ const customStyles = `
   .plyr--youtube .ytp-show-cards-title,
   .plyr--youtube .ytp-pause-overlay,
   .plyr--youtube .ytp-share-button,
-  .plyr--youtube .ytp-watch-later-button {
+  .plyr--youtube .ytp-watch-later-button,
+  .plyr--youtube .ytp-copylink-button,
+  .plyr--youtube .ytp-share-panel,
+  .plyr--youtube .ytp-share-button-visible,
+  .plyr--youtube .ytp-menuitem-label,
+  .plyr--youtube .ytp-menuitem-content,
+  .plyr--youtube .ytp-contextmenu,
+  .plyr--youtube .ytp-popup,
+  .plyr--youtube .ytp-cards-teaser,
+  .plyr--youtube .ytp-ce-element,
+  .plyr--youtube .ytp-suggested-action,
+  .plyr--youtube .ytp-endscreen-element,
+  .plyr--youtube .ytp-title,
+  .plyr--youtube .ytp-title-link,
+  .plyr--youtube .ytp-title-channel,
+  .plyr--youtube .ytp-videowall-still,
+  .plyr--youtube .ytp-impression-link,
+  .plyr--youtube .iv-click-target,
+  .plyr--youtube .iv-promo,
+  .plyr--youtube .annotation,
+  .plyr--youtube .ytp-button[data-tooltip-target-id*="share"],
+  .plyr--youtube .ytp-button[data-tooltip-target-id*="copy"],
+  .plyr--youtube .ytp-button[aria-label*="Share"],
+  .plyr--youtube .ytp-button[aria-label*="Copy"] {
     display: none !important;
     visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    position: absolute !important;
+    left: -9999px !important;
+    top: -9999px !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+  
+  /* Hide any iframe content that might show YouTube UI */
+  iframe[src*="youtube.com"],
+  iframe[src*="youtube-nocookie.com"] {
+    pointer-events: none !important;
+  }
+  
+  /* Block any overlays or popups */
+  .plyr--youtube::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1;
   }
   
   /* Ensure controls are properly styled */
   .plyr__controls {
     background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
     padding: 20px;
+    z-index: 10;
   }
   
   .plyr__control {
