@@ -145,8 +145,25 @@ export function SecureYouTubePlayer({
             setLoading(false)
             setDuration(event.target.getDuration())
 
-            // Intercept copy-link button clicks inside the iframe
+            // Override global clipboard API to intercept ALL YouTube URL copies
             const fakeUrl = 'https://learnova.com/protected-content'
+            const originalWriteText = navigator.clipboard?.writeText
+            if (originalWriteText) {
+              navigator.clipboard.writeText = async (text: string) => {
+                if (text.includes('youtube.com') || text.includes('youtu.be')) {
+                  await originalWriteText.call(navigator.clipboard, fakeUrl)
+                  toast({
+                    title: 'Link Copied',
+                    description: 'Content protected',
+                    variant: 'default'
+                  })
+                  return
+                }
+                return originalWriteText.call(navigator.clipboard, text)
+              }
+            }
+            
+            // Also try iframe-level interception as backup
             const iframeElement = event.target.getIframe()
             if (iframeElement && iframeElement.contentWindow && iframeElement.contentWindow.document) {
               try {
