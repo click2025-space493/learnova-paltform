@@ -138,7 +138,13 @@ export function SecureYouTubePlayer({
           end: 0,
           loop: 0,
           color: 'white',
-          hl: 'en'
+          hl: 'en',
+          // Additional restrictions
+          widget_referrer: window.location.origin,
+          host: window.location.hostname,
+          // Disable all interactive elements
+          autohide: 0,
+          theme: 'dark'
         },
         events: {
           onReady: (event: any) => {
@@ -163,8 +169,55 @@ export function SecureYouTubePlayer({
               }
             }
             
-            // Also try iframe-level interception as backup
+            // Aggressive continuous monitoring and removal
             const iframeElement = event.target.getIframe()
+            
+            // Set up continuous monitoring to remove copy buttons
+            const aggressiveMonitoring = setInterval(() => {
+              try {
+                // Remove from main document
+                const mainCopyButtons = document.querySelectorAll(
+                  '.ytp-copylink-button, .ytp-share-button, [aria-label*="Copy"], [aria-label*="Share"], [title*="Copy"], [title*="Share"]'
+                )
+                mainCopyButtons.forEach((btn: any) => {
+                  btn.remove()
+                })
+                
+                // Try to access iframe and remove from there too
+                if (iframeElement && iframeElement.contentDocument) {
+                  const iframeCopyButtons = iframeElement.contentDocument.querySelectorAll(
+                    '.ytp-copylink-button, .ytp-share-button, [aria-label*="Copy"], [aria-label*="Share"], [title*="Copy"], [title*="Share"], .ytp-chrome-bottom, .ytp-chrome-controls'
+                  )
+                  iframeCopyButtons.forEach((btn: any) => {
+                    btn.remove()
+                  })
+                  
+                  // Also hide by setting styles directly
+                  const allButtons = iframeElement.contentDocument.querySelectorAll('button, [role="button"]')
+                  allButtons.forEach((btn: any) => {
+                    const ariaLabel = btn.getAttribute('aria-label') || ''
+                    const title = btn.getAttribute('title') || ''
+                    if (ariaLabel.toLowerCase().includes('copy') || 
+                        ariaLabel.toLowerCase().includes('share') ||
+                        title.toLowerCase().includes('copy') ||
+                        title.toLowerCase().includes('share')) {
+                      btn.style.display = 'none !important'
+                      btn.style.visibility = 'hidden !important'
+                      btn.style.opacity = '0 !important'
+                      btn.style.pointerEvents = 'none !important'
+                      btn.remove()
+                    }
+                  })
+                }
+              } catch (e) {
+                // Cross-origin restrictions
+              }
+            }, 100) // Check every 100ms
+            
+            // Clean up after 5 minutes
+            setTimeout(() => clearInterval(aggressiveMonitoring), 300000)
+            
+            // Also try iframe-level interception as backup
             if (iframeElement && iframeElement.contentWindow && iframeElement.contentWindow.document) {
               try {
                 iframeElement.contentWindow.document.addEventListener(
