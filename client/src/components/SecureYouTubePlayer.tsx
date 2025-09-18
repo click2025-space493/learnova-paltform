@@ -318,9 +318,18 @@ export function SecureYouTubePlayer({
             // Completely hide the iframe to prevent any YouTube UI
             const iframe = iframeElement
             if (iframe) {
-              iframe.style.pointerEvents = 'none'
+              iframe.style.pointerEvents = 'none !important'
               iframe.style.border = 'none'
               iframe.style.outline = 'none'
+              iframe.style.userSelect = 'none'
+              iframe.style.webkitUserSelect = 'none'
+              iframe.style.mozUserSelect = 'none'
+              iframe.style.msUserSelect = 'none'
+              
+              // Make iframe completely non-interactive
+              iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin')
+              iframe.setAttribute('scrolling', 'no')
+              iframe.setAttribute('frameborder', '0')
               
               // Add CSS to hide YouTube controls
               const style = document.createElement('style')
@@ -574,21 +583,58 @@ export function SecureYouTubePlayer({
           </div>
         </div>
 
-        {/* Complete YouTube UI blocking overlay */}
+        {/* COMPLETE YouTube blocking overlay - intercepts ALL interactions */}
         <div className="absolute inset-0 pointer-events-none z-30 bg-transparent">
-          {/* Block ALL YouTube interactions - complete overlay */}
-          <div className="absolute inset-0 bg-transparent pointer-events-auto z-40"
-               onClick={(e) => { e.stopPropagation(); togglePlay(); }}
-               onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
-               onDoubleClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-               onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
-               onMouseUp={(e) => { e.preventDefault(); e.stopPropagation(); }}
-               style={{ cursor: 'pointer' }} />
-          
-          {/* Extra blocking for bottom area */}
-          <div className="absolute bottom-0 left-0 right-0 h-32 bg-black pointer-events-auto z-50"
-               onClick={(e) => { e.stopPropagation(); togglePlay(); }} 
-               style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.9))' }} />
+          {/* Total interaction blocking overlay */}
+          <div 
+            className="absolute inset-0 bg-transparent pointer-events-auto z-50"
+            onClick={(e) => { 
+              e.preventDefault(); 
+              e.stopPropagation(); 
+              console.log('Overlay clicked - preventing YouTube interaction');
+              togglePlay(); 
+            }}
+            onContextMenu={(e) => { 
+              e.preventDefault(); 
+              e.stopPropagation(); 
+              console.log('Right-click blocked on overlay');
+              return false;
+            }}
+            onDoubleClick={(e) => { 
+              e.preventDefault(); 
+              e.stopPropagation(); 
+              console.log('Double-click blocked on overlay');
+              return false;
+            }}
+            onMouseDown={(e) => { 
+              e.preventDefault(); 
+              e.stopPropagation(); 
+              console.log('Mouse down blocked on overlay');
+              return false;
+            }}
+            onMouseUp={(e) => { 
+              e.preventDefault(); 
+              e.stopPropagation(); 
+              console.log('Mouse up blocked on overlay');
+              return false;
+            }}
+            onKeyDown={(e) => {
+              if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C')) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Ctrl+C blocked on overlay');
+                navigator.clipboard?.writeText('https://www.rickroll.com/');
+                return false;
+              }
+            }}
+            style={{ 
+              cursor: 'pointer',
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              MozUserSelect: 'none',
+              msUserSelect: 'none'
+            }} 
+          />
         </div>
 
         {/* Play button overlay */}
