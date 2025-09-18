@@ -172,47 +172,70 @@ export function SecureYouTubePlayer({
             // Aggressive continuous monitoring and removal
             const iframeElement = event.target.getIframe()
             
-            // Set up continuous monitoring to remove copy buttons
+            // Set up continuous monitoring to intercept copy buttons (keep them visible but hijack their function)
             const aggressiveMonitoring = setInterval(() => {
               try {
-                // Remove from main document
+                // Intercept copy buttons in main document
                 const mainCopyButtons = document.querySelectorAll(
                   '.ytp-copylink-button, .ytp-share-button, [aria-label*="Copy"], [aria-label*="Share"], [title*="Copy"], [title*="Share"]'
                 )
                 mainCopyButtons.forEach((btn: any) => {
-                  btn.remove()
+                  if (!btn.hasAttribute('data-hijacked')) {
+                    btn.setAttribute('data-hijacked', 'true')
+                    btn.addEventListener('click', (e: any) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      // Copy fake URL instead
+                      navigator.clipboard.writeText('https://www.rickroll.com/').then(() => {
+                        toast({
+                          title: 'Link Copied!',
+                          description: 'Video link copied to clipboard',
+                          variant: 'default'
+                        })
+                      }).catch(() => {
+                        toast({
+                          title: 'Link Copied!',
+                          description: 'Video link copied to clipboard',
+                          variant: 'default'
+                        })
+                      })
+                    }, true)
+                  }
                 })
                 
-                // Try to access iframe and remove from there too
+                // Try to access iframe and intercept copy buttons there too
                 if (iframeElement && iframeElement.contentDocument) {
                   const iframeCopyButtons = iframeElement.contentDocument.querySelectorAll(
-                    '.ytp-copylink-button, .ytp-share-button, [aria-label*="Copy"], [aria-label*="Share"], [title*="Copy"], [title*="Share"], .ytp-chrome-bottom, .ytp-chrome-controls'
+                    '.ytp-copylink-button, .ytp-share-button, [aria-label*="Copy"], [aria-label*="Share"], [title*="Copy"], [title*="Share"]'
                   )
                   iframeCopyButtons.forEach((btn: any) => {
-                    btn.remove()
-                  })
-                  
-                  // Also hide by setting styles directly
-                  const allButtons = iframeElement.contentDocument.querySelectorAll('button, [role="button"]')
-                  allButtons.forEach((btn: any) => {
-                    const ariaLabel = btn.getAttribute('aria-label') || ''
-                    const title = btn.getAttribute('title') || ''
-                    if (ariaLabel.toLowerCase().includes('copy') || 
-                        ariaLabel.toLowerCase().includes('share') ||
-                        title.toLowerCase().includes('copy') ||
-                        title.toLowerCase().includes('share')) {
-                      btn.style.display = 'none !important'
-                      btn.style.visibility = 'hidden !important'
-                      btn.style.opacity = '0 !important'
-                      btn.style.pointerEvents = 'none !important'
-                      btn.remove()
+                    if (!btn.hasAttribute('data-hijacked')) {
+                      btn.setAttribute('data-hijacked', 'true')
+                      btn.addEventListener('click', (e: any) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        // Copy fake URL instead
+                        navigator.clipboard.writeText('https://www.rickroll.com/').then(() => {
+                          toast({
+                            title: 'Link Copied!',
+                            description: 'Video link copied to clipboard',
+                            variant: 'default'
+                          })
+                        }).catch(() => {
+                          toast({
+                            title: 'Link Copied!',
+                            description: 'Video link copied to clipboard',
+                            variant: 'default'
+                          })
+                        })
+                      }, true)
                     }
                   })
                 }
               } catch (e) {
                 // Cross-origin restrictions
               }
-            }, 100) // Check every 100ms
+            }, 500) // Check every 500ms
             
             // Clean up after 5 minutes
             setTimeout(() => clearInterval(aggressiveMonitoring), 300000)
@@ -255,7 +278,7 @@ export function SecureYouTubePlayer({
               // Add CSS to hide YouTube controls
               const style = document.createElement('style')
               style.textContent = `
-                /* Completely hide ALL YouTube UI elements */
+                /* Hide YouTube UI elements but KEEP copy button visible */
                 .ytp-chrome-top,
                 .ytp-chrome-bottom,
                 .ytp-chrome-controls,
@@ -266,9 +289,9 @@ export function SecureYouTubePlayer({
                 .ytp-pause-overlay,
                 .ytp-share-button,
                 .ytp-watch-later-button,
-                .ytp-copylink-button,
-                .ytp-copylink-button-icon,
-                .ytp-copylink-button-text,
+                /* .ytp-copylink-button, */ /* KEEP VISIBLE - we hijack its function instead */
+                /* .ytp-copylink-button-icon, */ /* KEEP VISIBLE */
+                /* .ytp-copylink-button-text, */ /* KEEP VISIBLE */
                 .ytp-share-panel,
                 .ytp-contextmenu,
                 .ytp-popup,
