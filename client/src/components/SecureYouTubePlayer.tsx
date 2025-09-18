@@ -204,6 +204,8 @@ export function SecureYouTubePlayer({
               style.textContent = `
                 .ytp-chrome-top,
                 .ytp-chrome-bottom,
+                .ytp-chrome-controls,
+                .ytp-gradient-bottom,
                 .ytp-watermark,
                 .ytp-gradient-top,
                 .ytp-gradient-bottom,
@@ -437,8 +439,10 @@ export function SecureYouTubePlayer({
           {/* Block all edges where YouTube controls might appear */}
           <div className="absolute top-0 left-0 right-0 h-16 bg-transparent pointer-events-auto" 
                onClick={(e) => { e.stopPropagation(); togglePlay(); }} />
-          <div className="absolute bottom-0 left-0 right-0 h-20 bg-transparent pointer-events-auto"
-               onClick={(e) => { e.stopPropagation(); togglePlay(); }} />
+          {/* Enhanced bottom control bar blocking */}
+          <div className="absolute bottom-0 left-0 right-0 h-24 bg-black pointer-events-auto z-50"
+               onClick={(e) => { e.stopPropagation(); togglePlay(); }} 
+               style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.8))' }} />
           <div className="absolute top-0 bottom-0 right-0 w-20 bg-transparent pointer-events-auto"
                onClick={(e) => { e.stopPropagation(); togglePlay(); }} />
           <div className="absolute top-0 bottom-0 left-0 w-20 bg-transparent pointer-events-auto"
