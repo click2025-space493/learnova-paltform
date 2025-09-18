@@ -105,7 +105,7 @@ export function SecureYouTubePlayer({
     const initializePlayer = () => {
       if (!playerRef.current) return
 
-      // Create a hidden iframe container
+      // Create a completely isolated iframe container
       const iframeContainer = document.createElement('div')
       iframeContainer.style.position = 'absolute'
       iframeContainer.style.top = '0'
@@ -114,6 +114,23 @@ export function SecureYouTubePlayer({
       iframeContainer.style.height = '100%'
       iframeContainer.style.pointerEvents = 'none'
       iframeContainer.style.overflow = 'hidden'
+      iframeContainer.style.userSelect = 'none'
+      iframeContainer.style.webkitUserSelect = 'none'
+      iframeContainer.style.mozUserSelect = 'none'
+      iframeContainer.style.msUserSelect = 'none'
+      
+      // Add aggressive CSS to block all interactions
+      iframeContainer.innerHTML = `
+        <style>
+          * { 
+            pointer-events: none !important; 
+            user-select: none !important;
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+          }
+        </style>
+      `
 
       playerRef.current.appendChild(iframeContainer)
 
@@ -144,7 +161,21 @@ export function SecureYouTubePlayer({
           host: window.location.hostname,
           // Disable all interactive elements
           autohide: 0,
-          theme: 'dark'
+          theme: 'dark',
+          // NUCLEAR OPTION - disable everything
+          cc_lang_pref: '',
+          hl: 'en',
+          cc_load_policy: 0,
+          iv_load_policy: 3,
+          modestbranding: 1,
+          rel: 0,
+          showinfo: 0,
+          // Disable right-click and context menu
+          disablekb: 1,
+          fs: 0,
+          // Remove all branding and controls
+          autohide: 1,
+          controls: 0
         },
         events: {
           onReady: (event: any) => {
@@ -215,6 +246,58 @@ export function SecureYouTubePlayer({
             
             document.addEventListener('copy', globalCopyHandler, true)
             window.addEventListener('copy', globalCopyHandler, true)
+            
+            // NUCLEAR OPTION: Override ALL possible clipboard methods
+            // Override document.execCommand for older browsers
+            const originalExecCommand2 = document.execCommand
+            document.execCommand = function(command: string, showUI?: boolean, value?: string) {
+              console.log('execCommand called:', command, value)
+              if (command === 'copy' || command === 'cut') {
+                navigator.clipboard?.writeText(fakeUrl)
+                toast({
+                  title: 'Link Copied!',
+                  description: 'Video link copied to clipboard',
+                  variant: 'default'
+                })
+                return true
+              }
+              return originalExecCommand2.call(document, command, showUI, value)
+            }
+            
+            // Override window.getSelection to prevent text selection
+            const originalGetSelection = window.getSelection
+            window.getSelection = function() {
+              const selection = originalGetSelection?.call(window)
+              if (selection && selection.toString().includes('youtube')) {
+                selection.removeAllRanges()
+                return null
+              }
+              return selection
+            }
+            
+            // Block all keyboard shortcuts globally
+            const blockAllShortcuts = (e: KeyboardEvent) => {
+              if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'c' || e.key === 'C' || e.key === 'a' || e.key === 'A' || 
+                    e.key === 'x' || e.key === 'X' || e.key === 'v' || e.key === 'V') {
+                  console.log('Keyboard shortcut blocked:', e.key)
+                  e.preventDefault()
+                  e.stopPropagation()
+                  if (e.key === 'c' || e.key === 'C') {
+                    navigator.clipboard?.writeText(fakeUrl)
+                    toast({
+                      title: 'Link Copied!',
+                      description: 'Video link copied to clipboard',
+                      variant: 'default'
+                    })
+                  }
+                  return false
+                }
+              }
+            }
+            
+            document.addEventListener('keydown', blockAllShortcuts, true)
+            window.addEventListener('keydown', blockAllShortcuts, true)
             
             // Aggressive continuous monitoring and removal
             const iframeElement = event.target.getIframe()
