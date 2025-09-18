@@ -144,9 +144,39 @@ export function SecureYouTubePlayer({
           onReady: (event: any) => {
             setLoading(false)
             setDuration(event.target.getDuration())
+
+            // Intercept copy-link button clicks inside the iframe
+            const fakeUrl = 'https://learnova.com/protected-content'
+            const iframeElement = event.target.getIframe()
+            if (iframeElement && iframeElement.contentWindow && iframeElement.contentWindow.document) {
+              try {
+                iframeElement.contentWindow.document.addEventListener(
+                  'click',
+                  (ev: any) => {
+                    const btn = ev.target?.closest?.('.ytp-copylink-button')
+                    if (btn) {
+                      ev.preventDefault()
+                      ev.stopPropagation()
+                      // write fake URL to clipboard
+                      if (navigator.clipboard?.writeText) {
+                        navigator.clipboard.writeText(fakeUrl).catch(() => {})
+                      }
+                      toast({
+                        title: 'Link Copied',
+                        description: 'Content protected',
+                        variant: 'default'
+                      })
+                    }
+                  },
+                  true
+                )
+              } catch (e) {
+                console.log('Copy-link interception failed:', e)
+              }
+            }
             
             // Completely hide the iframe to prevent any YouTube UI
-            const iframe = event.target.getIframe()
+            const iframe = iframeElement
             if (iframe) {
               iframe.style.pointerEvents = 'none'
               iframe.style.border = 'none'
