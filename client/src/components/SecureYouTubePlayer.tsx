@@ -212,6 +212,8 @@ export function SecureYouTubePlayer({
                 .ytp-share-button,
                 .ytp-watch-later-button,
                 .ytp-copylink-button,
+                .ytp-copylink-button-icon,
+                .ytp-copylink-button-text,
                 .ytp-share-panel,
                 .ytp-contextmenu,
                 .ytp-popup,
@@ -222,11 +224,24 @@ export function SecureYouTubePlayer({
                 .ytp-button[data-tooltip-target-id*="share"],
                 .ytp-button[data-tooltip-target-id*="copy"],
                 .ytp-button[aria-label*="Share"],
-                .ytp-button[aria-label*="Copy"] {
+                .ytp-button[aria-label*="Copy"],
+                .ytp-button[aria-label*="نسخ"],
+                .ytp-button[title*="Copy"],
+                .ytp-button[title*="نسخ"],
+                button[aria-label*="Copy link"],
+                button[aria-label*="نسخ الرابط"],
+                svg[aria-label*="Copy"],
+                svg[aria-label*="نسخ"] {
                   display: none !important;
                   visibility: hidden !important;
                   opacity: 0 !important;
                   pointer-events: none !important;
+                  position: absolute !important;
+                  left: -9999px !important;
+                  top: -9999px !important;
+                  width: 0 !important;
+                  height: 0 !important;
+                  z-index: -9999 !important;
                 }
               `
               document.head.appendChild(style)
