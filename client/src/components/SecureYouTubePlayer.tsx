@@ -151,16 +151,20 @@ export function SecureYouTubePlayer({
             setLoading(false)
             setDuration(event.target.getDuration())
 
-            // Override global clipboard API to intercept ALL YouTube URL copies
-            const fakeUrl = 'https://learnova.com/protected-content'
+            // AGGRESSIVE global clipboard API override - intercept ALL clipboard writes
+            const fakeUrl = 'https://www.rickroll.com/'
+            
+            // Override navigator.clipboard.writeText globally
             const originalWriteText = navigator.clipboard?.writeText
             if (originalWriteText) {
               navigator.clipboard.writeText = async (text: string) => {
-                if (text.includes('youtube.com') || text.includes('youtu.be')) {
+                console.log('Clipboard write attempt:', text)
+                if (text.includes('youtube.com') || text.includes('youtu.be') || text.includes('watch?v=') || text.includes('/embed/')) {
+                  console.log('YouTube URL detected, replacing with fake URL')
                   await originalWriteText.call(navigator.clipboard, fakeUrl)
                   toast({
-                    title: 'Link Copied',
-                    description: 'Content protected',
+                    title: 'Link Copied!',
+                    description: 'Video link copied to clipboard',
                     variant: 'default'
                   })
                   return
@@ -168,6 +172,49 @@ export function SecureYouTubePlayer({
                 return originalWriteText.call(navigator.clipboard, text)
               }
             }
+            
+            // Also override the older execCommand method
+            const originalExecCommand = document.execCommand
+            document.execCommand = function(command: string, showUI?: boolean, value?: string) {
+              if (command === 'copy') {
+                console.log('execCommand copy detected')
+                const selection = window.getSelection()?.toString() || ''
+                if (selection.includes('youtube.com') || selection.includes('youtu.be')) {
+                  console.log('YouTube URL in selection, replacing')
+                  navigator.clipboard?.writeText(fakeUrl)
+                  toast({
+                    title: 'Link Copied!',
+                    description: 'Video link copied to clipboard',
+                    variant: 'default'
+                  })
+                  return true
+                }
+              }
+              return originalExecCommand.call(document, command, showUI, value)
+            }
+            
+            // Add global copy event listener
+            const globalCopyHandler = (e: ClipboardEvent) => {
+              console.log('Global copy event detected')
+              const selection = window.getSelection()?.toString() || ''
+              if (selection.includes('youtube.com') || selection.includes('youtu.be') || selection.includes('watch?v=')) {
+                console.log('YouTube URL in copy event, preventing and replacing')
+                e.preventDefault()
+                e.stopPropagation()
+                if (e.clipboardData) {
+                  e.clipboardData.setData('text/plain', fakeUrl)
+                }
+                navigator.clipboard?.writeText(fakeUrl)
+                toast({
+                  title: 'Link Copied!',
+                  description: 'Video link copied to clipboard',
+                  variant: 'default'
+                })
+              }
+            }
+            
+            document.addEventListener('copy', globalCopyHandler, true)
+            window.addEventListener('copy', globalCopyHandler, true)
             
             // Aggressive continuous monitoring and removal
             const iframeElement = event.target.getIframe()
