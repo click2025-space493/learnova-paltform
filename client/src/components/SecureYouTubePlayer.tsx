@@ -202,13 +202,13 @@ export function SecureYouTubePlayer({
               // Add CSS to hide YouTube controls
               const style = document.createElement('style')
               style.textContent = `
+                /* Completely hide ALL YouTube UI elements */
                 .ytp-chrome-top,
                 .ytp-chrome-bottom,
                 .ytp-chrome-controls,
                 .ytp-gradient-bottom,
                 .ytp-watermark,
                 .ytp-gradient-top,
-                .ytp-gradient-bottom,
                 .ytp-show-cards-title,
                 .ytp-pause-overlay,
                 .ytp-share-button,
@@ -223,6 +223,10 @@ export function SecureYouTubePlayer({
                 .ytp-title,
                 .ytp-title-link,
                 .ytp-title-channel,
+                .ytp-right-controls,
+                .ytp-left-controls,
+                .ytp-center-controls,
+                .ytp-progress-bar-container,
                 .ytp-button[data-tooltip-target-id*="share"],
                 .ytp-button[data-tooltip-target-id*="copy"],
                 .ytp-button[aria-label*="Share"],
@@ -233,7 +237,15 @@ export function SecureYouTubePlayer({
                 button[aria-label*="Copy link"],
                 button[aria-label*="نسخ الرابط"],
                 svg[aria-label*="Copy"],
-                svg[aria-label*="نسخ"] {
+                svg[aria-label*="نسخ"],
+                /* Target any button with copy-related content */
+                *[class*="copy"],
+                *[class*="Copy"],
+                *[class*="share"],
+                *[class*="Share"],
+                /* Hide entire control bar */
+                .html5-video-controls,
+                .ytp-chrome-controls {
                   display: none !important;
                   visibility: hidden !important;
                   opacity: 0 !important;
@@ -244,6 +256,11 @@ export function SecureYouTubePlayer({
                   width: 0 !important;
                   height: 0 !important;
                   z-index: -9999 !important;
+                }
+                
+                /* Force hide iframe content */
+                iframe[src*="youtube"] * {
+                  pointer-events: none !important;
                 }
               `
               document.head.appendChild(style)
@@ -436,17 +453,19 @@ export function SecureYouTubePlayer({
 
         {/* Complete YouTube UI blocking overlay */}
         <div className="absolute inset-0 pointer-events-none z-30 bg-transparent">
-          {/* Block all edges where YouTube controls might appear */}
-          <div className="absolute top-0 left-0 right-0 h-16 bg-transparent pointer-events-auto" 
-               onClick={(e) => { e.stopPropagation(); togglePlay(); }} />
-          {/* Enhanced bottom control bar blocking */}
-          <div className="absolute bottom-0 left-0 right-0 h-24 bg-black pointer-events-auto z-50"
+          {/* Block ALL YouTube interactions - complete overlay */}
+          <div className="absolute inset-0 bg-transparent pointer-events-auto z-40"
+               onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+               onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
+               onDoubleClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+               onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+               onMouseUp={(e) => { e.preventDefault(); e.stopPropagation(); }}
+               style={{ cursor: 'pointer' }} />
+          
+          {/* Extra blocking for bottom area */}
+          <div className="absolute bottom-0 left-0 right-0 h-32 bg-black pointer-events-auto z-50"
                onClick={(e) => { e.stopPropagation(); togglePlay(); }} 
-               style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.8))' }} />
-          <div className="absolute top-0 bottom-0 right-0 w-20 bg-transparent pointer-events-auto"
-               onClick={(e) => { e.stopPropagation(); togglePlay(); }} />
-          <div className="absolute top-0 bottom-0 left-0 w-20 bg-transparent pointer-events-auto"
-               onClick={(e) => { e.stopPropagation(); togglePlay(); }} />
+               style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.9))' }} />
         </div>
 
         {/* Play button overlay */}
