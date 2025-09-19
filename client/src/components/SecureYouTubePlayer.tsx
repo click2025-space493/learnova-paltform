@@ -642,6 +642,20 @@ export function SecureYouTubePlayer({
         <div
           ref={playerRef}
         />
+        
+        {/* LEARNOVA overlay to cover copy button icon - TOP LEFT */}
+        <div className="absolute top-2 left-2 z-50 pointer-events-none select-none">
+          <div className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-4 py-2 rounded-lg shadow-xl border-2 border-white">
+            <span className="text-xl font-black tracking-wider">LEARNOVA</span>
+          </div>
+        </div>
+        
+        {/* LEARNOVA overlay to cover copy button area - TOP RIGHT */}
+        <div className="absolute top-2 right-2 z-50 pointer-events-none select-none">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg shadow-xl border-2 border-white">
+            <span className="text-xl font-black tracking-wider">LEARNOVA</span>
+          </div>
+        </div>
       </div>
 
       {/* Play button overlay */}
@@ -677,27 +691,6 @@ export function SecureYouTubePlayer({
           </div>
         </div>
 
-        {/* LEARNOVA overlay to cover copy button area (top-right) */}
-        <div className="absolute top-4 right-4 z-50 pointer-events-none select-none">
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg shadow-lg">
-            <span className="text-2xl font-bold tracking-wider">LEARNOVA</span>
-          </div>
-        </div>
-
-        {/* LEARNOVA overlay to cover copy button icon on left sidebar (top-left) */}
-        {/* LEARNOVA overlay to cover copy button icon on left sidebar */}
-        <div className="absolute top-4 left-4 z-50 pointer-events-none select-none">
-          <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg shadow-lg rotate-[-10deg]">
-            <span className="text-3xl font-extrabold tracking-widest">LEARNOVA</span>
-          </div>
-        </div>
-
-        {/* Additional overlay for bottom-right corner */}
-        <div className="absolute bottom-16 right-4 z-50 pointer-events-none select-none">
-          <div className="bg-black bg-opacity-70 text-white px-4 py-2 rounded-md">
-            <span className="text-lg font-semibold">LEARNOVA</span>
-          </div>
-        </div>
 
         {/* COMPLETE YouTube blocking overlay - intercepts ALL interactions */}
         <div className="absolute inset-0 pointer-events-none z-30 bg-transparent">
