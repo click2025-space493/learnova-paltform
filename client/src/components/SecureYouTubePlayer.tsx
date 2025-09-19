@@ -677,10 +677,18 @@ export function SecureYouTubePlayer({
           </div>
         </div>
 
-        {/* LEARNOVA overlay to cover copy button area */}
+        {/* LEARNOVA overlay to cover copy button area (top-right) */}
         <div className="absolute top-4 right-4 z-50 pointer-events-none select-none">
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg shadow-lg">
             <span className="text-2xl font-bold tracking-wider">LEARNOVA</span>
+          </div>
+        </div>
+
+        {/* LEARNOVA overlay to cover copy button icon on left sidebar (top-left) */}
+        {/* LEARNOVA overlay to cover copy button icon on left sidebar */}
+        <div className="absolute top-4 left-4 z-50 pointer-events-none select-none">
+          <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg shadow-lg rotate-[-10deg]">
+            <span className="text-3xl font-extrabold tracking-widest">LEARNOVA</span>
           </div>
         </div>
 
