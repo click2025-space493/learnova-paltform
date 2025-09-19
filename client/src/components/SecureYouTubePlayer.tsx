@@ -405,7 +405,7 @@ export function SecureYouTubePlayer({
               // Add CSS to hide YouTube controls
               const style = document.createElement('style')
               style.textContent = `
-                /* Hide YouTube UI elements but KEEP copy button visible */
+                /* COMPLETELY HIDE COPY LINK BUTTON AND ALL YOUTUBE CONTROLS */
                 .ytp-chrome-top,
                 .ytp-chrome-bottom,
                 .ytp-chrome-controls,
@@ -416,9 +416,9 @@ export function SecureYouTubePlayer({
                 .ytp-pause-overlay,
                 .ytp-share-button,
                 .ytp-watch-later-button,
-                /* .ytp-copylink-button, */ /* KEEP VISIBLE - we hijack its function instead */
-                /* .ytp-copylink-button-icon, */ /* KEEP VISIBLE */
-                /* .ytp-copylink-button-text, */ /* KEEP VISIBLE */
+                .ytp-copylink-button,
+                .ytp-copylink-button-icon,
+                .ytp-copylink-button-text,
                 .ytp-share-panel,
                 .ytp-contextmenu,
                 .ytp-popup,
@@ -448,7 +448,12 @@ export function SecureYouTubePlayer({
                 *[class*="Share"],
                 /* Hide entire control bar */
                 .html5-video-controls,
-                .ytp-chrome-controls {
+                .ytp-chrome-controls,
+                /* Specific targeting for copy link button */
+                .ytp-menuitem[aria-label*="Copy"],
+                .ytp-menuitem[aria-label*="نسخ"],
+                .ytp-overflow-panel .ytp-menuitem:contains("Copy"),
+                .ytp-overflow-panel .ytp-menuitem:contains("نسخ") {
                   display: none !important;
                   visibility: hidden !important;
                   opacity: 0 !important;
@@ -636,13 +641,31 @@ export function SecureYouTubePlayer({
       >
         <div
           ref={playerRef}
-          className="absolute inset-0 w-full h-full"
         />
-        
-        {/* Watermark Overlay */}
-        <div
-          ref={watermarkRef}
-          className="absolute pointer-events-none select-none z-50 transition-all duration-1000 ease-in-out"
+      </div>
+
+      {/* Play button overlay */}
+      {!isPlaying && (
+        <div className="absolute inset-0 flex items-center justify-center z-40">
+          <Button
+            size="lg"
+            className="bg-black/50 hover:bg-black/70 text-white border-0 rounded-full w-16 h-16"
+            onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+          >
+            <Play className="h-8 w-8 ml-1" />
+          </Button>
+        </div>
+      )}
+
+      {/* Custom Controls */}
+      <div 
+        className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity duration-300 z-40 ${
+          showControls ? 'opacity-100' : 'opacity-0'
+        }`}
+      >
+        {/* Animated watermark */}
+        <div 
+          className="absolute z-20 pointer-events-none select-none"
           style={{
             left: `${watermarkPosition.x}px`,
             top: `${watermarkPosition.y}px`,
@@ -651,6 +674,20 @@ export function SecureYouTubePlayer({
         >
           <div className="bg-black bg-opacity-50 text-white px-3 py-1 rounded text-sm font-medium">
             {studentName} • ID: {studentId}
+          </div>
+        </div>
+
+        {/* LEARNOVA overlay to cover copy button area */}
+        <div className="absolute top-4 right-4 z-50 pointer-events-none select-none">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg shadow-lg">
+            <span className="text-2xl font-bold tracking-wider">LEARNOVA</span>
+          </div>
+        </div>
+
+        {/* Additional overlay for bottom-right corner */}
+        <div className="absolute bottom-16 right-4 z-50 pointer-events-none select-none">
+          <div className="bg-black bg-opacity-70 text-white px-4 py-2 rounded-md">
+            <span className="text-lg font-semibold">LEARNOVA</span>
           </div>
         </div>
 
