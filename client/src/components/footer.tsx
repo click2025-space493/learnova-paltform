@@ -26,8 +26,8 @@ export default function Footer() {
 
   const socialLinks = [
     { href: "#", icon: "twitter", label: "Twitter" },
-    { href: "#", icon: "facebook", label: "Facebook" },
-    { href: "#", icon: "linkedin", label: "LinkedIn" },
+    { href: "https://www.facebook.com/share/g/1AmnUqVKsP/", icon: "facebook", label: "Facebook" },
+    { href: "https://www.linkedin.com/in/mohamed-essa-b77425284/", icon: "linkedin", label: "LinkedIn" },
   ];
 
   return (
