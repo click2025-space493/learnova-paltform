@@ -631,6 +631,20 @@ export function SecureYouTubePlayer({
 
   return (
     <div className={`relative bg-black rounded-lg overflow-hidden ${className}`}>
+      {/* LEARNOVA overlay to cover copy button icon - TOP LEFT */}
+      <div className="absolute top-2 left-2 z-[9999] pointer-events-none select-none">
+        <div className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-4 py-2 rounded-lg shadow-xl border-2 border-white">
+          <span className="text-xl font-black tracking-wider">LEARNOVA</span>
+        </div>
+      </div>
+      
+      {/* LEARNOVA overlay to cover copy button area - TOP RIGHT */}
+      <div className="absolute top-2 right-2 z-[9999] pointer-events-none select-none">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg shadow-xl border-2 border-white">
+          <span className="text-xl font-black tracking-wider">LEARNOVA</span>
+        </div>
+      </div>
+
       {/* Video Player Container */}
       <div 
         className="relative w-full group cursor-pointer"
@@ -642,20 +656,6 @@ export function SecureYouTubePlayer({
         <div
           ref={playerRef}
         />
-        
-        {/* LEARNOVA overlay to cover copy button icon - TOP LEFT */}
-        <div className="absolute top-2 left-2 z-50 pointer-events-none select-none">
-          <div className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-4 py-2 rounded-lg shadow-xl border-2 border-white">
-            <span className="text-xl font-black tracking-wider">LEARNOVA</span>
-          </div>
-        </div>
-        
-        {/* LEARNOVA overlay to cover copy button area - TOP RIGHT */}
-        <div className="absolute top-2 right-2 z-50 pointer-events-none select-none">
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg shadow-xl border-2 border-white">
-            <span className="text-xl font-black tracking-wider">LEARNOVA</span>
-          </div>
-        </div>
       </div>
 
       {/* Play button overlay */}
