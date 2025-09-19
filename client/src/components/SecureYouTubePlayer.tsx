@@ -631,18 +631,50 @@ export function SecureYouTubePlayer({
 
   return (
     <div className={`relative bg-black rounded-lg overflow-hidden ${className}`}>
-      {/* LEARNOVA overlay to cover copy button icon - TOP LEFT */}
-      <div className="absolute top-2 left-2 z-[9999] pointer-events-none select-none">
-        <div className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-4 py-2 rounded-lg shadow-xl border-2 border-white">
-          <span className="text-xl font-black tracking-wider">LEARNOVA</span>
-        </div>
+      {/* LEARNOVA overlay to cover copy button icon - TOP LEFT - FORCED VISIBILITY */}
+      <div 
+        style={{
+          position: 'absolute',
+          top: '8px',
+          left: '8px',
+          zIndex: 99999,
+          pointerEvents: 'none',
+          userSelect: 'none',
+          background: 'linear-gradient(45deg, #dc2626, #ea580c)',
+          color: 'white',
+          padding: '12px 16px',
+          borderRadius: '8px',
+          border: '3px solid white',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+          fontSize: '20px',
+          fontWeight: '900',
+          letterSpacing: '2px'
+        }}
+      >
+        LEARNOVA
       </div>
       
-      {/* LEARNOVA overlay to cover copy button area - TOP RIGHT */}
-      <div className="absolute top-2 right-2 z-[9999] pointer-events-none select-none">
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg shadow-xl border-2 border-white">
-          <span className="text-xl font-black tracking-wider">LEARNOVA</span>
-        </div>
+      {/* LEARNOVA overlay to cover copy button area - TOP RIGHT - FORCED VISIBILITY */}
+      <div 
+        style={{
+          position: 'absolute',
+          top: '8px',
+          right: '8px',
+          zIndex: 99999,
+          pointerEvents: 'none',
+          userSelect: 'none',
+          background: 'linear-gradient(45deg, #2563eb, #7c3aed)',
+          color: 'white',
+          padding: '12px 16px',
+          borderRadius: '8px',
+          border: '3px solid white',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+          fontSize: '20px',
+          fontWeight: '900',
+          letterSpacing: '2px'
+        }}
+      >
+        LEARNOVA
       </div>
 
       {/* Video Player Container */}
