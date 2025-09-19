@@ -115,9 +115,9 @@ export function SecureYouTubePlayer({
       iframeContainer.style.pointerEvents = 'none'
       iframeContainer.style.overflow = 'hidden'
       iframeContainer.style.userSelect = 'none'
-      iframeContainer.style.webkitUserSelect = 'none'
-      iframeContainer.style.mozUserSelect = 'none'
-      iframeContainer.style.msUserSelect = 'none'
+      ;(iframeContainer.style as any).webkitUserSelect = 'none'
+      ;(iframeContainer.style as any).mozUserSelect = 'none'
+      ;(iframeContainer.style as any).msUserSelect = 'none'
       
       // Add aggressive CSS to block all interactions
       iframeContainer.innerHTML = `
@@ -160,22 +160,10 @@ export function SecureYouTubePlayer({
           widget_referrer: window.location.origin,
           host: window.location.hostname,
           // Disable all interactive elements
-          autohide: 0,
+          autohide: 1, // Changed from 0 to 1 to remove duplicates
           theme: 'dark',
           // NUCLEAR OPTION - disable everything
-          cc_lang_pref: '',
-          hl: 'en',
-          cc_load_policy: 0,
-          iv_load_policy: 3,
-          modestbranding: 1,
-          rel: 0,
-          showinfo: 0,
-          // Disable right-click and context menu
-          disablekb: 1,
-          fs: 0,
-          // Remove all branding and controls
-          autohide: 1,
-          controls: 0
+          cc_lang_pref: ''
         },
         events: {
           onReady: (event: any) => {
