@@ -273,18 +273,19 @@ export default function Navigation() {
                     </div>
                   ) : (
                     <div className="pt-4 border-t border-border space-y-4">
-                      <a
-                        href="/api/login"
+                      <Link
+                        href="/signin"
                         className="block text-foreground hover:text-primary transition-colors text-lg"
+                        onClick={() => setIsMobileMenuOpen(false)}
                         data-testid="mobile-link-signin"
                       >
                         Sign In
-                      </a>
-                      <a href="/api/login" className="block">
+                      </Link>
+                      <Link href="/role-selection" className="block" onClick={() => setIsMobileMenuOpen(false)}>
                         <Button className="w-full" data-testid="mobile-button-get-started">
                           Get Started
                         </Button>
-                      </a>
+                      </Link>
                     </div>
                   )}
                 </div>
