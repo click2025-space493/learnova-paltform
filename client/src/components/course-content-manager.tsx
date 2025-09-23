@@ -136,8 +136,8 @@ export default function CourseContentManager({ courseId }: CourseContentManagerP
           type,
           position,
           is_free: false,
-          youtube_video_id: null,
-          youtube_video_url: null
+          youtube_video_id: '',
+          youtube_video_url: ''
         })
         .select()
         .single();
@@ -236,7 +236,7 @@ export default function CourseContentManager({ courseId }: CourseContentManagerP
   });
 
   const addChapter = () => {
-    if (!newChapterTitle.trim()) {
+    if (!(newChapterTitle || '').trim()) {
       toast({
         title: "Chapter title required",
         description: "Please enter a title for the chapter",

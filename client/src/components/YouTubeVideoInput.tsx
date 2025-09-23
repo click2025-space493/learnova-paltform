@@ -31,7 +31,7 @@ export function YouTubeVideoInput({
   initialUrl = '',
   className 
 }: YouTubeVideoInputProps) {
-  const [url, setUrl] = useState(initialUrl)
+  const [url, setUrl] = useState(initialUrl || '')
   const [loading, setLoading] = useState(false)
   const [videoInfo, setVideoInfo] = useState<VideoInfo | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -61,7 +61,7 @@ export function YouTubeVideoInput({
     setVideoInfo(null)
 
     try {
-      const videoId = extractVideoId(inputUrl.trim())
+      const videoId = extractVideoId((inputUrl || '').trim())
       
       if (!videoId) {
         throw new Error('Invalid YouTube URL. Please provide a valid YouTube video URL or video ID.')
@@ -119,15 +119,15 @@ export function YouTubeVideoInput({
     setError(null)
     
     // Clear video info if URL is cleared
-    if (!newUrl.trim()) {
+    if (!(newUrl || '').trim()) {
       setVideoInfo(null)
     }
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (url.trim()) {
-      validateAndExtractInfo(url)
+    if ((url || '').trim()) {
+      validateAndExtractInfo(url || '')
     }
   }
 
@@ -173,7 +173,7 @@ export function YouTubeVideoInput({
               />
               <Button 
                 type="submit" 
-                disabled={!url.trim() || loading}
+                disabled={!(url || '').trim() || loading}
                 size="default"
               >
                 {loading ? 'Validating...' : 'Add Video'}
