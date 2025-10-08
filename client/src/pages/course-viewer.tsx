@@ -24,7 +24,12 @@ import {
   Award,
   AlertCircle,
   X,
-  ArrowLeft
+  ArrowLeft,
+  Maximize,
+  Minimize,
+  SkipForward,
+  SkipBack,
+  Pause
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -70,6 +75,8 @@ export default function CourseViewer() {
   const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
   const [autoplayEnabled, setAutoplayEnabled] = useState(false);
   const [showPlayButton, setShowPlayButton] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showControls, setShowControls] = useState(true);
 
   // Handle autoplay state - don't reset it automatically
   useEffect(() => {
@@ -78,6 +85,89 @@ export default function CourseViewer() {
       // Keep autoplay enabled for this lesson
     }
   }, [currentLesson, autoplayEnabled])
+
+  // Fullscreen functionality
+  const toggleFullscreen = () => {
+    const videoContainer = document.querySelector('.video-container') as HTMLElement
+    if (!videoContainer) return
+
+    if (!document.fullscreenElement) {
+      videoContainer.requestFullscreen().then(() => {
+        setIsFullscreen(true)
+      }).catch(err => {
+        console.error('Error attempting to enable fullscreen:', err)
+      })
+    } else {
+      document.exitFullscreen().then(() => {
+        setIsFullscreen(false)
+      })
+    }
+  }
+
+  // Video control functions
+  const sendVideoCommand = (command: string, args?: any) => {
+    const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
+    if (iframe && iframe.contentWindow) {
+      try {
+        const message = JSON.stringify({
+          event: 'command',
+          func: command,
+          args: args || ''
+        })
+        iframe.contentWindow.postMessage(message, '*')
+      } catch (error) {
+        console.log('Could not send video command:', error)
+      }
+    }
+  }
+
+  const seekVideo = (seconds: number) => {
+    // Get current time first, then seek relative to it
+    sendVideoCommand('getCurrentTime')
+    setTimeout(() => {
+      sendVideoCommand('seekTo', seconds)
+    }, 100)
+  }
+
+  const skipForward = () => {
+    sendVideoCommand('getCurrentTime')
+    // We'll handle the actual seeking in a message listener
+    const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
+    if (iframe && iframe.contentWindow) {
+      // Send a custom message to skip forward 10 seconds
+      iframe.contentWindow.postMessage('{"event":"command","func":"getCurrentTime","args":""}', '*')
+    }
+  }
+
+  const skipBackward = () => {
+    sendVideoCommand('getCurrentTime')
+    // We'll handle the actual seeking in a message listener  
+    const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
+    if (iframe && iframe.contentWindow) {
+      // Send a custom message to skip backward 10 seconds
+      iframe.contentWindow.postMessage('{"event":"command","func":"getCurrentTime","args":""}', '*')
+    }
+  }
+
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement)
+    }
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  }, [])
+
+  // Auto-hide controls in fullscreen
+  useEffect(() => {
+    if (isFullscreen) {
+      const timer = setTimeout(() => setShowControls(false), 3000)
+      return () => clearTimeout(timer)
+    } else {
+      setShowControls(true)
+    }
+  }, [isFullscreen])
 
   // Global security measures for the entire course page
   useEffect(() => {
@@ -93,6 +183,44 @@ export default function CourseViewer() {
         return false;
       }
       
+      // Allow video control shortcuts but block developer tools
+      if (e.key === ' ' || e.key === 'Spacebar') {
+        // Allow spacebar for play/pause
+        e.preventDefault();
+        const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
+        if (iframe && iframe.contentWindow) {
+          iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*')
+        }
+        return false;
+      }
+      
+      if (e.key === 'ArrowLeft') {
+        // Allow left arrow for skip backward
+        e.preventDefault();
+        const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
+        if (iframe && iframe.contentWindow) {
+          iframe.contentWindow.postMessage('{"event":"command","func":"seekBy","args":[-10]}', '*')
+        }
+        return false;
+      }
+      
+      if (e.key === 'ArrowRight') {
+        // Allow right arrow for skip forward
+        e.preventDefault();
+        const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
+        if (iframe && iframe.contentWindow) {
+          iframe.contentWindow.postMessage('{"event":"command","func":"seekBy","args":[10]}', '*')
+        }
+        return false;
+      }
+      
+      if (e.key === 'f' || e.key === 'F') {
+        // Allow F for fullscreen
+        e.preventDefault();
+        toggleFullscreen();
+        return false;
+      }
+
       // Block developer tools shortcuts
       if ((e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) ||
           (e.ctrlKey && (e.key === 'u' || e.key === 'U')) ||
@@ -676,7 +804,7 @@ export default function CourseViewer() {
                       }}
                     />
                     <div 
-                      className="aspect-video rounded-lg overflow-hidden bg-black shadow-lg relative select-none"
+                      className={`video-container aspect-video rounded-lg overflow-hidden bg-black shadow-lg relative select-none ${isFullscreen ? 'fixed inset-0 z-50 rounded-none' : ''}`}
                       style={{ 
                         userSelect: 'none',
                         WebkitUserSelect: 'none',
@@ -685,6 +813,13 @@ export default function CourseViewer() {
                       }}
                       onContextMenu={(e) => e.preventDefault()}
                       onDragStart={(e) => e.preventDefault()}
+                      onMouseMove={() => {
+                        if (isFullscreen) {
+                          setShowControls(true)
+                          // Auto-hide after 3 seconds
+                          setTimeout(() => setShowControls(false), 3000)
+                        }
+                      }}
                     >
                       {/* Loading indicator */}
                       {autoplayEnabled && (
@@ -717,6 +852,71 @@ export default function CourseViewer() {
                           </button>
                         </div>
                       )}
+
+                      {/* Custom Video Controls */}
+                      {currentLesson && showControls && (
+                        <div className={`video-controls absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 z-30 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+                          <div className="flex items-center justify-between">
+                            {/* Left controls - Skip backward */}
+                            <div className="flex items-center gap-2">
+                              <button
+                                className="p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all duration-200"
+                                onClick={() => {
+                                  const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
+                                  if (iframe && iframe.contentWindow) {
+                                    iframe.contentWindow.postMessage('{"event":"command","func":"seekBy","args":[-10]}', '*')
+                                  }
+                                }}
+                                title="Skip backward 10 seconds"
+                              >
+                                <SkipBack className="h-5 w-5" />
+                              </button>
+                              <span className="text-white text-sm">-10s</span>
+                            </div>
+
+                            {/* Center controls - Play/Pause */}
+                            <div className="flex items-center gap-4">
+                              <button
+                                className="p-3 rounded-full bg-red-600 hover:bg-red-700 text-white transition-all duration-200"
+                                onClick={() => {
+                                  const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
+                                  if (iframe && iframe.contentWindow) {
+                                    iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*')
+                                  }
+                                }}
+                                title="Play/Pause"
+                              >
+                                <Play className="h-6 w-6" />
+                              </button>
+                            </div>
+
+                            {/* Right controls - Skip forward and Fullscreen */}
+                            <div className="flex items-center gap-2">
+                              <span className="text-white text-sm">+10s</span>
+                              <button
+                                className="p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all duration-200"
+                                onClick={() => {
+                                  const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
+                                  if (iframe && iframe.contentWindow) {
+                                    iframe.contentWindow.postMessage('{"event":"command","func":"seekBy","args":[10]}', '*')
+                                  }
+                                }}
+                                title="Skip forward 10 seconds"
+                              >
+                                <SkipForward className="h-5 w-5" />
+                              </button>
+                              <button
+                                className="p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all duration-200"
+                                onClick={toggleFullscreen}
+                                title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                              >
+                                {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       <iframe
                         key={`${currentLesson?.id}-${autoplayEnabled}`} // Force re-render when lesson or autoplay changes
                         src={`https://www.youtube-nocookie.com/embed/${(currentLesson as any).youtube_video_id}?autoplay=1&rel=0&modestbranding=1&showinfo=0&controls=1&disablekb=0&fs=1&iv_load_policy=3&cc_load_policy=0&playsinline=1&origin=${window.location.origin}&enablejsapi=1&title=0&mute=0&start=0`}

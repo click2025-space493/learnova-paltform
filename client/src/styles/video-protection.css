@@ -265,6 +265,32 @@ iframe[src*="youtube"] *[title*="Share"] {
   pointer-events: none !important;
 }
 
+/* Fullscreen video container styles */
+.video-container:fullscreen {
+  background: black !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.video-container:fullscreen iframe {
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+}
+
+/* Custom video controls styling */
+.video-controls {
+  pointer-events: auto !important;
+  z-index: 9999 !important;
+}
+
+.video-controls button {
+  pointer-events: auto !important;
+  user-select: none !important;
+}
+
 /* Block YouTube's dynamic elements */
 .ytp-button[data-tooltip-target-id*="share"],
 .ytp-button[data-tooltip-target-id*="copy"],
