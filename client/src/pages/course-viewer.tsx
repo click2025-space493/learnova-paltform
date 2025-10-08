@@ -29,7 +29,9 @@ import {
   Minimize,
   SkipForward,
   SkipBack,
-  Pause
+  Pause,
+  Gauge,
+  ChevronUp
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -74,33 +76,133 @@ export default function CourseViewer() {
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
   const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
   const [autoplayEnabled, setAutoplayEnabled] = useState(false);
-  const [showPlayButton, setShowPlayButton] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [controlsTimer, setControlsTimer] = useState<NodeJS.Timeout | null>(null);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   // Handle autoplay state - don't reset it automatically
   useEffect(() => {
     if (currentLesson && autoplayEnabled) {
       console.log('Video selected with autoplay:', currentLesson.title)
-      // Keep autoplay enabled for this lesson
+      // Set playing state to true when autoplay starts
+      setIsPlaying(true)
     }
   }, [currentLesson, autoplayEnabled])
 
-  // Fullscreen functionality
-  const toggleFullscreen = () => {
-    const videoContainer = document.querySelector('.video-container') as HTMLElement
-    if (!videoContainer) return
 
-    if (!document.fullscreenElement) {
-      videoContainer.requestFullscreen().then(() => {
-        setIsFullscreen(true)
-      }).catch(err => {
-        console.error('Error attempting to enable fullscreen:', err)
-      })
-    } else {
-      document.exitFullscreen().then(() => {
-        setIsFullscreen(false)
-      })
+  // Controls visibility management
+  const showControlsTemporarily = () => {
+    // Clear existing timer
+    if (controlsTimer) {
+      clearTimeout(controlsTimer)
+    }
+    
+    // Show controls
+    setShowControls(true)
+    
+    // Hide controls after 3 seconds only in fullscreen
+    if (isFullscreen) {
+      const timer = setTimeout(() => {
+        setShowControls(false)
+      }, 3000)
+      setControlsTimer(timer)
+    }
+  }
+
+  // Fullscreen functionality with cross-browser support
+  const toggleFullscreen = async () => {
+    const videoContainer = document.querySelector('.video-container') as HTMLElement
+    if (!videoContainer) {
+      console.log('Video container not found')
+      return
+    }
+
+    try {
+      // Check if currently in fullscreen (cross-browser)
+      const isCurrentlyFullscreen = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      )
+
+      if (!isCurrentlyFullscreen) {
+        console.log('Entering fullscreen...')
+        
+        // Try different fullscreen methods for cross-browser compatibility
+        if (videoContainer.requestFullscreen) {
+          await videoContainer.requestFullscreen()
+        } else if ((videoContainer as any).webkitRequestFullscreen) {
+          await (videoContainer as any).webkitRequestFullscreen()
+        } else if ((videoContainer as any).mozRequestFullScreen) {
+          await (videoContainer as any).mozRequestFullScreen()
+        } else if ((videoContainer as any).msRequestFullscreen) {
+          await (videoContainer as any).msRequestFullscreen()
+        }
+        
+        console.log('Fullscreen enabled')
+      } else {
+        console.log('Exiting fullscreen...')
+        
+        // Try different exit fullscreen methods
+        if (document.exitFullscreen) {
+          await document.exitFullscreen()
+        } else if ((document as any).webkitExitFullscreen) {
+          await (document as any).webkitExitFullscreen()
+        } else if ((document as any).mozCancelFullScreen) {
+          await (document as any).mozCancelFullScreen()
+        } else if ((document as any).msExitFullscreen) {
+          await (document as any).msExitFullscreen()
+        }
+        
+        console.log('Fullscreen disabled')
+      }
+    } catch (err) {
+      console.error('Fullscreen error:', err)
+      // Reset state based on actual fullscreen status
+      const actualFullscreenState = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      )
+      setIsFullscreen(actualFullscreenState)
+    }
+  }
+
+  // Play/Pause toggle function
+  const togglePlayPause = () => {
+    const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
+    if (iframe && iframe.contentWindow) {
+      try {
+        if (isPlaying) {
+          iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*')
+          setIsPlaying(false)
+          console.log('Video paused')
+        } else {
+          iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*')
+          setIsPlaying(true)
+          console.log('Video playing')
+        }
+      } catch (error) {
+        console.log('Could not toggle play/pause:', error)
+      }
+    }
+  }
+
+  // Speed control function
+  const changePlaybackSpeed = (speed: number) => {
+    setPlaybackSpeed(speed)
+    const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
+    if (iframe && iframe.contentWindow) {
+      try {
+        iframe.contentWindow.postMessage(`{"event":"command","func":"setPlaybackRate","args":[${speed}]}`, '*')
+        console.log(`Playback speed changed to ${speed}x`)
+      } catch (error) {
+        console.log('Could not change playback speed:', error)
+      }
     }
   }
 
@@ -152,21 +254,124 @@ export default function CourseViewer() {
   // Listen for fullscreen changes
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement)
+      // Cross-browser fullscreen detection
+      const isCurrentlyFullscreen = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      )
+      
+      console.log('Fullscreen change detected:', isCurrentlyFullscreen)
+      setIsFullscreen(isCurrentlyFullscreen)
+      
+      // Reset controls visibility when exiting fullscreen
+      if (!isCurrentlyFullscreen) {
+        setShowControls(true)
+      }
     }
 
+    const handleFullscreenError = (e: Event) => {
+      console.error('Fullscreen error event:', e)
+      setIsFullscreen(false)
+    }
+
+    // Listen to multiple fullscreen events for better compatibility
     document.addEventListener('fullscreenchange', handleFullscreenChange)
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange)
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange)
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange)
+    
+    document.addEventListener('fullscreenerror', handleFullscreenError)
+    document.addEventListener('webkitfullscreenerror', handleFullscreenError)
+    document.addEventListener('mozfullscreenerror', handleFullscreenError)
+    document.addEventListener('MSFullscreenError', handleFullscreenError)
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange)
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange)
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange)
+      
+      document.removeEventListener('fullscreenerror', handleFullscreenError)
+      document.removeEventListener('webkitfullscreenerror', handleFullscreenError)
+      document.removeEventListener('mozfullscreenerror', handleFullscreenError)
+      document.removeEventListener('MSFullscreenError', handleFullscreenError)
+    }
   }, [])
 
   // Auto-hide controls in fullscreen
   useEffect(() => {
+    // Clear any existing timer when fullscreen state changes
+    if (controlsTimer) {
+      clearTimeout(controlsTimer)
+      setControlsTimer(null)
+    }
+    
     if (isFullscreen) {
-      const timer = setTimeout(() => setShowControls(false), 3000)
-      return () => clearTimeout(timer)
+      // Show controls initially when entering fullscreen
+      setShowControls(true)
+      // Start auto-hide timer
+      showControlsTemporarily()
     } else {
+      // Always show controls when not in fullscreen
       setShowControls(true)
     }
+  }, [isFullscreen])
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (controlsTimer) {
+        clearTimeout(controlsTimer)
+      }
+    }
+  }, [controlsTimer])
+
+  // Listen for YouTube player state changes
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== 'https://www.youtube.com' && event.origin !== 'https://www.youtube-nocookie.com') {
+        return
+      }
+      
+      try {
+        const data = JSON.parse(event.data)
+        if (data.event === 'video-progress') {
+          // YouTube sends progress updates
+          if (data.info && typeof data.info.playerState !== 'undefined') {
+            // YouTube player states: -1 (unstarted), 0 (ended), 1 (playing), 2 (paused), 3 (buffering), 5 (cued)
+            const playerState = data.info.playerState
+            setIsPlaying(playerState === 1) // 1 = playing
+          }
+        }
+      } catch (error) {
+        // Ignore parsing errors
+      }
+    }
+
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [])
+
+  // Periodic fullscreen state sync (fallback)
+  useEffect(() => {
+    const syncFullscreenState = () => {
+      const actualFullscreenState = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      )
+      
+      if (actualFullscreenState !== isFullscreen) {
+        console.log('Syncing fullscreen state:', actualFullscreenState)
+        setIsFullscreen(actualFullscreenState)
+      }
+    }
+
+    const interval = setInterval(syncFullscreenState, 1000) // Check every second
+    return () => clearInterval(interval)
   }, [isFullscreen])
 
   // Global security measures for the entire course page
@@ -183,14 +388,16 @@ export default function CourseViewer() {
         return false;
       }
       
+      // Show controls on any key press in fullscreen
+      if (isFullscreen) {
+        showControlsTemporarily()
+      }
+
       // Allow video control shortcuts but block developer tools
       if (e.key === ' ' || e.key === 'Spacebar') {
-        // Allow spacebar for play/pause
+        // Allow spacebar for play/pause toggle
         e.preventDefault();
-        const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
-        if (iframe && iframe.contentWindow) {
-          iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*')
-        }
+        togglePlayPause();
         return false;
       }
       
@@ -218,6 +425,29 @@ export default function CourseViewer() {
         // Allow F for fullscreen
         e.preventDefault();
         toggleFullscreen();
+        return false;
+      }
+      
+      if (e.key === '+' || e.key === '=') {
+        // Increase speed with + key
+        e.preventDefault();
+        const newSpeed = Math.min(playbackSpeed + 0.25, 2)
+        changePlaybackSpeed(newSpeed)
+        return false;
+      }
+      
+      if (e.key === '-' || e.key === '_') {
+        // Decrease speed with - key
+        e.preventDefault();
+        const newSpeed = Math.max(playbackSpeed - 0.25, 0.25)
+        changePlaybackSpeed(newSpeed)
+        return false;
+      }
+      
+      if (e.key === '1') {
+        // Reset to normal speed with 1 key
+        e.preventDefault();
+        changePlaybackSpeed(1)
         return false;
       }
 
@@ -691,7 +921,8 @@ export default function CourseViewer() {
                               e.stopPropagation()
                               
                               setAutoplayEnabled(true) // Enable autoplay for this selection
-                              setShowPlayButton(false) // Hide any existing play button
+                              setPlaybackSpeed(1) // Reset speed to normal
+                              setIsPlaying(false) // Reset playing state
                               setCurrentLesson(lesson)
                               
                               // Auto-scroll to video player on mobile
@@ -815,9 +1046,20 @@ export default function CourseViewer() {
                       onDragStart={(e) => e.preventDefault()}
                       onMouseMove={() => {
                         if (isFullscreen) {
-                          setShowControls(true)
-                          // Auto-hide after 3 seconds
-                          setTimeout(() => setShowControls(false), 3000)
+                          showControlsTemporarily()
+                        }
+                      }}
+                      onMouseEnter={() => {
+                        if (isFullscreen) {
+                          showControlsTemporarily()
+                        }
+                      }}
+                      onMouseLeave={() => {
+                        // No action needed for mouse leave
+                      }}
+                      onClick={() => {
+                        if (isFullscreen) {
+                          showControlsTemporarily()
                         }
                       }}
                     >
@@ -831,25 +1073,17 @@ export default function CourseViewer() {
                         </div>
                       )}
                       
-                      {/* Fallback play button if autoplay fails */}
-                      {showPlayButton && !autoplayEnabled && (
-                        <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center z-20">
-                          <button
-                            className="w-20 h-20 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center text-white text-2xl transition-all duration-200 shadow-lg"
-                            onClick={() => {
-                              setShowPlayButton(false)
-                              const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
-                              if (iframe && iframe.contentWindow) {
-                                try {
-                                  iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*')
-                                } catch (error) {
-                                  console.log('Could not send play command:', error)
-                                }
-                              }
-                            }}
-                          >
-                            ▶️
-                          </button>
+
+
+                      {/* Controls hint when hidden in fullscreen */}
+                      {isFullscreen && !showControls && (
+                        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded text-sm opacity-70 z-20 animate-fade-in">
+                          <div className="text-center">
+                            <div>Move mouse or press any key to show controls</div>
+                            <div className="text-xs mt-1 opacity-80">
+                              Speed: {playbackSpeed}x | +/- to adjust | 1 to reset
+                            </div>
+                          </div>
                         </div>
                       )}
 
@@ -878,19 +1112,14 @@ export default function CourseViewer() {
                             <div className="flex items-center gap-4">
                               <button
                                 className="p-3 rounded-full bg-red-600 hover:bg-red-700 text-white transition-all duration-200"
-                                onClick={() => {
-                                  const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
-                                  if (iframe && iframe.contentWindow) {
-                                    iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*')
-                                  }
-                                }}
-                                title="Play/Pause"
+                                onClick={togglePlayPause}
+                                title={isPlaying ? "Pause" : "Play"}
                               >
-                                <Play className="h-6 w-6" />
+                                {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
                               </button>
                             </div>
 
-                            {/* Right controls - Skip forward and Fullscreen */}
+                            {/* Right controls - Skip forward, Speed, and Fullscreen */}
                             <div className="flex items-center gap-2">
                               <span className="text-white text-sm">+10s</span>
                               <button
@@ -905,6 +1134,58 @@ export default function CourseViewer() {
                               >
                                 <SkipForward className="h-5 w-5" />
                               </button>
+                              
+                              {/* Speed Control */}
+                              <div className="flex items-center gap-1">
+                                {/* Preset Speed Buttons */}
+                                <div className="flex gap-1">
+                                  {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
+                                    <button
+                                      key={speed}
+                                      className={`px-2 py-1 rounded text-xs font-mono transition-all duration-200 ${
+                                        playbackSpeed === speed 
+                                          ? 'bg-red-600 text-white' 
+                                          : 'bg-black/50 text-white hover:bg-black/70'
+                                      }`}
+                                      onClick={() => changePlaybackSpeed(speed)}
+                                      title={`${speed}x speed`}
+                                    >
+                                      {speed}x
+                                    </button>
+                                  ))}
+                                </div>
+                                
+                                {/* Fine Control */}
+                                <div className="flex items-center gap-1 bg-black/50 rounded-full px-2 py-1 ml-2">
+                                  <Gauge className="h-4 w-4 text-white" />
+                                  <div className="flex flex-col gap-0">
+                                    <button
+                                      className="p-0.5 hover:bg-white/20 rounded text-white transition-all duration-200"
+                                      onClick={() => {
+                                        const newSpeed = Math.min(playbackSpeed + 0.25, 2)
+                                        changePlaybackSpeed(newSpeed)
+                                      }}
+                                      title="Increase speed (+0.25x)"
+                                    >
+                                      <ChevronUp className="h-3 w-3" />
+                                    </button>
+                                    <button
+                                      className="p-0.5 hover:bg-white/20 rounded text-white transition-all duration-200"
+                                      onClick={() => {
+                                        const newSpeed = Math.max(playbackSpeed - 0.25, 0.25)
+                                        changePlaybackSpeed(newSpeed)
+                                      }}
+                                      title="Decrease speed (-0.25x)"
+                                    >
+                                      <ChevronDown className="h-3 w-3" />
+                                    </button>
+                                  </div>
+                                  <span className="text-white text-xs font-mono min-w-[2rem] text-center">
+                                    {playbackSpeed}x
+                                  </span>
+                                </div>
+                              </div>
+                              
                               <button
                                 className="p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all duration-200"
                                 onClick={toggleFullscreen}
@@ -930,10 +1211,9 @@ export default function CourseViewer() {
                         onDragStart={(e) => e.preventDefault()}
                         onLoad={() => {
                           console.log('Video iframe loaded')
-                          // Hide loading indicator and show play button if autoplay fails
+                          // Hide loading indicator after iframe loads
                           setTimeout(() => {
                             setAutoplayEnabled(false)
-                            setShowPlayButton(true) // Show manual play button as fallback
                           }, 2000)
                         }}
                         style={{ 
