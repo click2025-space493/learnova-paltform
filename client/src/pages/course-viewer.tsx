@@ -81,6 +81,10 @@ export default function CourseViewer() {
   const [controlsTimer, setControlsTimer] = useState<NodeJS.Timeout | null>(null);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [videoKey, setVideoKey] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Handle autoplay state - don't reset it automatically
   useEffect(() => {
@@ -188,7 +192,21 @@ export default function CourseViewer() {
         }
       } catch (error) {
         console.log('Could not toggle play/pause:', error)
+        // Retry after a short delay
+        setTimeout(() => {
+          try {
+            if (isPlaying) {
+              iframe.contentWindow?.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*')
+            } else {
+              iframe.contentWindow?.postMessage('{"event":"command","func":"playVideo","args":""}', '*')
+            }
+          } catch (retryError) {
+            console.log('Retry failed:', retryError)
+          }
+        }, 500)
       }
+    } else {
+      console.log('No iframe found for play/pause toggle')
     }
   }
 
@@ -202,8 +220,49 @@ export default function CourseViewer() {
         console.log(`Playback speed changed to ${speed}x`)
       } catch (error) {
         console.log('Could not change playback speed:', error)
+        // Retry after a short delay
+        setTimeout(() => {
+          try {
+            iframe.contentWindow?.postMessage(`{"event":"command","func":"setPlaybackRate","args":[${speed}]}`, '*')
+          } catch (retryError) {
+            console.log('Speed change retry failed:', retryError)
+          }
+        }, 500)
       }
+    } else {
+      console.log('No iframe found for speed control')
     }
+  }
+
+  // Seek to specific time function
+  const seekToTime = (timeInSeconds: number) => {
+    const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
+    if (iframe && iframe.contentWindow) {
+      try {
+        iframe.contentWindow.postMessage(`{"event":"command","func":"seekTo","args":[${timeInSeconds}, true]}`, '*')
+        setCurrentTime(timeInSeconds)
+        console.log(`Seeked to ${timeInSeconds} seconds`)
+      } catch (error) {
+        console.log('Could not seek video:', error)
+        // Retry after a short delay
+        setTimeout(() => {
+          try {
+            iframe.contentWindow?.postMessage(`{"event":"command","func":"seekTo","args":[${timeInSeconds}, true]}`, '*')
+          } catch (retryError) {
+            console.log('Seek retry failed:', retryError)
+          }
+        }, 500)
+      }
+    } else {
+      console.log('No iframe found for seeking')
+    }
+  }
+
+  // Format time for display
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = Math.floor(seconds % 60)
+    return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
   // Video control functions
@@ -337,22 +396,81 @@ export default function CourseViewer() {
       
       try {
         const data = JSON.parse(event.data)
+        
+        // Handle different YouTube API events
         if (data.event === 'video-progress') {
           // YouTube sends progress updates
-          if (data.info && typeof data.info.playerState !== 'undefined') {
-            // YouTube player states: -1 (unstarted), 0 (ended), 1 (playing), 2 (paused), 3 (buffering), 5 (cued)
-            const playerState = data.info.playerState
-            setIsPlaying(playerState === 1) // 1 = playing
+          if (data.info) {
+            // Update player state
+            if (typeof data.info.playerState !== 'undefined') {
+              // YouTube player states: -1 (unstarted), 0 (ended), 1 (playing), 2 (paused), 3 (buffering), 5 (cued)
+              const playerState = data.info.playerState
+              setIsPlaying(playerState === 1) // 1 = playing
+            }
+            
+            // Update current time and duration
+            if (typeof data.info.currentTime !== 'undefined' && !isDragging) {
+              setCurrentTime(data.info.currentTime)
+            }
+            
+            if (typeof data.info.duration !== 'undefined') {
+              setDuration(data.info.duration)
+            }
+          }
+        } else if (data.event === 'infoDelivery') {
+          // Handle direct API responses
+          if (data.info) {
+            if (typeof data.info.currentTime !== 'undefined' && !isDragging) {
+              setCurrentTime(data.info.currentTime)
+            }
+            if (typeof data.info.duration !== 'undefined') {
+              setDuration(data.info.duration)
+            }
+          }
+        } else if (typeof data === 'number') {
+          // Sometimes YouTube sends just the time as a number
+          if (!isDragging) {
+            setCurrentTime(data)
           }
         }
       } catch (error) {
-        // Ignore parsing errors
+        // Try to parse as a simple number (current time)
+        try {
+          const timeValue = parseFloat(event.data)
+          if (!isNaN(timeValue) && !isDragging) {
+            setCurrentTime(timeValue)
+          }
+        } catch (parseError) {
+          // Ignore parsing errors
+        }
       }
     }
 
     window.addEventListener('message', handleMessage)
     return () => window.removeEventListener('message', handleMessage)
-  }, [])
+  }, [isDragging])
+
+  // Periodic video progress sync
+  useEffect(() => {
+    if (!currentLesson) return
+
+    const updateProgress = () => {
+      const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
+      if (iframe && iframe.contentWindow) {
+        try {
+          // Request current time and duration from YouTube
+          iframe.contentWindow.postMessage('{"event":"command","func":"getCurrentTime","args":""}', '*')
+          iframe.contentWindow.postMessage('{"event":"command","func":"getDuration","args":""}', '*')
+        } catch (error) {
+          console.log('Could not request video progress:', error)
+        }
+      }
+    }
+
+    // Update progress every second
+    const interval = setInterval(updateProgress, 1000)
+    return () => clearInterval(interval)
+  }, [currentLesson])
 
   // Periodic fullscreen state sync (fallback)
   useEffect(() => {
@@ -402,7 +520,27 @@ export default function CourseViewer() {
       }
       
       if (e.key === 'ArrowLeft') {
-        // Allow left arrow for skip backward
+        // Allow left arrow for skip backward (5 seconds for fine control)
+        e.preventDefault();
+        const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
+        if (iframe && iframe.contentWindow) {
+          iframe.contentWindow.postMessage('{"event":"command","func":"seekBy","args":[-5]}', '*')
+        }
+        return false;
+      }
+      
+      if (e.key === 'ArrowRight') {
+        // Allow right arrow for skip forward (5 seconds for fine control)
+        e.preventDefault();
+        const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
+        if (iframe && iframe.contentWindow) {
+          iframe.contentWindow.postMessage('{"event":"command","func":"seekBy","args":[5]}', '*')
+        }
+        return false;
+      }
+      
+      if (e.key === 'j' || e.key === 'J') {
+        // J key for 10 seconds backward (YouTube standard)
         e.preventDefault();
         const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
         if (iframe && iframe.contentWindow) {
@@ -411,13 +549,20 @@ export default function CourseViewer() {
         return false;
       }
       
-      if (e.key === 'ArrowRight') {
-        // Allow right arrow for skip forward
+      if (e.key === 'l' || e.key === 'L') {
+        // L key for 10 seconds forward (YouTube standard)
         e.preventDefault();
         const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
         if (iframe && iframe.contentWindow) {
           iframe.contentWindow.postMessage('{"event":"command","func":"seekBy","args":[10]}', '*')
         }
+        return false;
+      }
+      
+      if (e.key === 'k' || e.key === 'K') {
+        // K key for play/pause (YouTube standard)
+        e.preventDefault();
+        togglePlayPause();
         return false;
       }
       
@@ -920,9 +1065,14 @@ export default function CourseViewer() {
                               e.preventDefault()
                               e.stopPropagation()
                               
+                              // Reset all video states when switching lessons
                               setAutoplayEnabled(true) // Enable autoplay for this selection
                               setPlaybackSpeed(1) // Reset speed to normal
                               setIsPlaying(false) // Reset playing state
+                              setShowControls(true) // Ensure controls are visible
+                              setCurrentTime(0) // Reset video progress
+                              setDuration(0) // Reset duration
+                              setVideoKey(prev => prev + 1) // Force iframe reload
                               setCurrentLesson(lesson)
                               
                               // Auto-scroll to video player on mobile
@@ -940,11 +1090,12 @@ export default function CourseViewer() {
                                   try {
                                     // Send play command to YouTube iframe
                                     iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*')
+                                    console.log('Sent autoplay command to new video')
                                   } catch (error) {
                                     console.log('Could not send play command:', error)
                                   }
                                 }
-                              }, 1500)
+                              }, 2000) // Increased delay for better reliability
                             }}
                           >
                             <div className="flex items-center gap-2 lg:gap-3 w-full min-w-0">
@@ -1081,7 +1232,8 @@ export default function CourseViewer() {
                           <div className="text-center">
                             <div>Move mouse or press any key to show controls</div>
                             <div className="text-xs mt-1 opacity-80">
-                              Speed: {playbackSpeed}x | +/- to adjust | 1 to reset
+                              <div>Speed: {playbackSpeed}x | +/- to adjust | 1 to reset</div>
+                              <div>←→ 5s | J/L 10s | K/Space play/pause | F fullscreen</div>
                             </div>
                           </div>
                         </div>
@@ -1090,6 +1242,101 @@ export default function CourseViewer() {
                       {/* Custom Video Controls */}
                       {currentLesson && showControls && (
                         <div className={`video-controls absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 z-30 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+                          {/* Progress Bar */}
+                          <div className="mb-3">
+                            <div className="flex items-center gap-2 text-white text-xs mb-1">
+                              <span>{formatTime(currentTime)}</span>
+                              <span>/</span>
+                              <span>{formatTime(duration || 100)}</span>
+                              {duration === 0 && <span className="text-yellow-400 ml-2">(Loading...)</span>}
+                            </div>
+                            <div 
+                              className="relative w-full h-2 bg-white/30 rounded-full cursor-pointer group hover:h-3 transition-all duration-200"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                if (duration > 0 && e.currentTarget) {
+                                  try {
+                                    const rect = e.currentTarget.getBoundingClientRect()
+                                    if (rect && typeof rect.width === 'number' && rect.width > 0 && typeof rect.left === 'number') {
+                                      const clickX = e.clientX - rect.left
+                                      const percentage = Math.max(0, Math.min(1, clickX / rect.width))
+                                      const newTime = percentage * duration
+                                      seekToTime(newTime)
+                                    }
+                                  } catch (error) {
+                                    console.log('Error in progress bar click:', error)
+                                  }
+                                }
+                              }}
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                if (!e.currentTarget || duration <= 0) return
+                                
+                                setIsDragging(true)
+                                const progressBar = e.currentTarget
+                                
+                                const handleMouseMove = (moveEvent: MouseEvent) => {
+                                  if (duration > 0 && progressBar) {
+                                    try {
+                                      const rect = progressBar.getBoundingClientRect()
+                                      if (rect && typeof rect.width === 'number' && rect.width > 0 && typeof rect.left === 'number') {
+                                        const moveX = moveEvent.clientX - rect.left
+                                        const percentage = Math.max(0, Math.min(1, moveX / rect.width))
+                                        const newTime = percentage * duration
+                                        setCurrentTime(newTime)
+                                      }
+                                    } catch (error) {
+                                      console.log('Error in mouse move:', error)
+                                    }
+                                  }
+                                }
+                                
+                                const handleMouseUp = (upEvent: MouseEvent) => {
+                                  if (duration > 0 && progressBar) {
+                                    try {
+                                      const rect = progressBar.getBoundingClientRect()
+                                      if (rect && typeof rect.width === 'number' && rect.width > 0 && typeof rect.left === 'number') {
+                                        const upX = upEvent.clientX - rect.left
+                                        const percentage = Math.max(0, Math.min(1, upX / rect.width))
+                                        const newTime = percentage * duration
+                                        seekToTime(newTime)
+                                      }
+                                    } catch (error) {
+                                      console.log('Error in mouse up:', error)
+                                    }
+                                  }
+                                  setIsDragging(false)
+                                  document.removeEventListener('mousemove', handleMouseMove)
+                                  document.removeEventListener('mouseup', handleMouseUp)
+                                }
+                                
+                                document.addEventListener('mousemove', handleMouseMove)
+                                document.addEventListener('mouseup', handleMouseUp)
+                              }}
+                              style={{ pointerEvents: 'auto' }}
+                            >
+                              {/* Progress fill */}
+                              <div 
+                                className="absolute top-0 left-0 h-full bg-red-600 rounded-full transition-all duration-100"
+                                style={{ 
+                                  width: duration > 0 ? `${(currentTime / duration) * 100}%` : '0%',
+                                  pointerEvents: 'none'
+                                }}
+                              />
+                              {/* Scrubber handle */}
+                              <div 
+                                className="absolute top-1/2 transform -translate-y-1/2 w-4 h-4 bg-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
+                                style={{ 
+                                  left: duration > 0 ? `${(currentTime / duration) * 100}%` : '0%', 
+                                  marginLeft: '-8px',
+                                  pointerEvents: 'none'
+                                }}
+                              />
+                            </div>
+                          </div>
+                          
                           <div className="flex items-center justify-between">
                             {/* Left controls - Skip backward */}
                             <div className="flex items-center gap-2">
@@ -1199,8 +1446,8 @@ export default function CourseViewer() {
                       )}
 
                       <iframe
-                        key={`${currentLesson?.id}-${autoplayEnabled}`} // Force re-render when lesson or autoplay changes
-                        src={`https://www.youtube-nocookie.com/embed/${(currentLesson as any).youtube_video_id}?autoplay=1&rel=0&modestbranding=1&showinfo=0&controls=1&disablekb=0&fs=1&iv_load_policy=3&cc_load_policy=0&playsinline=1&origin=${window.location.origin}&enablejsapi=1&title=0&mute=0&start=0`}
+                        key={`video-${currentLesson?.id}-${videoKey}`} // Force complete re-render when lesson changes
+                        src={`https://www.youtube-nocookie.com/embed/${(currentLesson as any).youtube_video_id}?autoplay=1&rel=0&modestbranding=1&showinfo=0&controls=1&disablekb=0&fs=1&iv_load_policy=3&cc_load_policy=0&playsinline=1&origin=${window.location.origin}&enablejsapi=1&title=0&mute=0&start=0&widget_referrer=${window.location.origin}`}
                         title=""
                         className="w-full h-full select-none"
                         frameBorder="0"
@@ -1210,11 +1457,22 @@ export default function CourseViewer() {
                         onContextMenu={(e) => e.preventDefault()}
                         onDragStart={(e) => e.preventDefault()}
                         onLoad={() => {
-                          console.log('Video iframe loaded')
-                          // Hide loading indicator after iframe loads
+                          console.log('Video iframe loaded for lesson:', currentLesson?.title)
+                          // Initialize video controls after iframe loads
                           setTimeout(() => {
                             setAutoplayEnabled(false)
-                          }, 2000)
+                            // Ensure the iframe is ready for commands
+                            const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
+                            if (iframe && iframe.contentWindow) {
+                              try {
+                                // Initialize YouTube API listener
+                                iframe.contentWindow.postMessage('{"event":"listening","id":"' + currentLesson?.id + '"}', '*')
+                                console.log('YouTube API listener initialized for new video')
+                              } catch (error) {
+                                console.log('Could not initialize YouTube API:', error)
+                              }
+                            }
+                          }, 1000)
                         }}
                         style={{ 
                           pointerEvents: 'auto',

@@ -337,6 +337,52 @@ iframe[src*="youtube"] *[title*="Share"] {
   animation: hoverButtonAppear 0.2s ease-out forwards;
 }
 
+/* Video progress bar styling */
+.video-progress-bar {
+  position: relative;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: height 0.2s ease;
+}
+
+.video-progress-bar:hover {
+  height: 6px;
+}
+
+.video-progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #ef4444;
+  border-radius: 2px;
+  transition: width 0.1s ease;
+}
+
+.video-progress-handle {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  background: #ef4444;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  margin-left: -6px;
+  cursor: grab;
+}
+
+.video-progress-handle:active {
+  cursor: grabbing;
+}
+
+.video-progress-bar:hover .video-progress-handle {
+  opacity: 1;
+}
+
 /* Block YouTube's dynamic elements */
 .ytp-button[data-tooltip-target-id*="share"],
 .ytp-button[data-tooltip-target-id*="copy"],
