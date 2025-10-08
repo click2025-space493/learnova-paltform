@@ -157,3 +157,143 @@
   z-index: 10001;
   font-weight: bold;
 }
+
+/* ========================================
+   COMPREHENSIVE YOUTUBE COPY LINK BLOCKING
+   ======================================== */
+
+/* Hide ALL YouTube sharing and copy link elements */
+iframe[src*="youtube.com"] *,
+iframe[src*="youtube-nocookie.com"] *,
+.plyr--youtube *,
+.plyr__video-embed * {
+  /* Block copy link buttons */
+  .ytp-copylink-button,
+  .ytp-share-button,
+  .ytp-share-panel,
+  .ytp-share-button-visible,
+  button[aria-label*="Copy"],
+  button[aria-label*="Share"],
+  button[title*="Copy"],
+  button[title*="Share"],
+  [data-tooltip-target-id*="copy"],
+  [data-tooltip-target-id*="share"],
+  
+  /* Block context menus and overlays */
+  .ytp-contextmenu,
+  .ytp-popup,
+  .ytp-menuitem[aria-label*="Copy"],
+  .ytp-menuitem[aria-label*="Share"],
+  
+  /* Block any element containing copy/share text */
+  *[class*="copy"],
+  *[class*="share"],
+  *[id*="copy"],
+  *[id*="share"],
+  
+  /* Block YouTube branding and info */
+  .ytp-chrome-top,
+  .ytp-chrome-bottom,
+  .ytp-watermark,
+  .ytp-title,
+  .ytp-title-link,
+  .ytp-title-channel,
+  .ytp-show-cards-title,
+  .ytp-pause-overlay,
+  .ytp-gradient-top,
+  .ytp-gradient-bottom {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    position: absolute !important;
+    left: -9999px !important;
+    top: -9999px !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    z-index: -1 !important;
+  }
+}
+
+/* Aggressive blocking using CSS attribute selectors - ONLY for YouTube copy/share */
+iframe[src*="youtube"] button[aria-label*="Copy link"],
+iframe[src*="youtube"] button[aria-label*="Share"],
+iframe[src*="youtube"] button[title*="Copy link"],
+iframe[src*="youtube"] button[title*="Share"],
+iframe[src*="youtube"] .ytp-copylink-button,
+iframe[src*="youtube"] .ytp-share-button,
+iframe[src*="youtube"] .ytp-share-panel {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: fixed !important;
+  left: -10000px !important;
+  top: -10000px !important;
+  width: 0 !important;
+  height: 0 !important;
+  z-index: -999999 !important;
+}
+
+/* Block YouTube UI overlays completely */
+.plyr--youtube .ytp-chrome-top,
+.plyr--youtube .ytp-chrome-bottom,
+.plyr--youtube .ytp-share-panel,
+.plyr--youtube .ytp-contextmenu,
+.plyr--youtube .ytp-popup {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Additional blocking for YouTube elements only */
+iframe[src*="youtube"] *[aria-label*="Copy link"],
+iframe[src*="youtube"] *[aria-label*="Share"],
+iframe[src*="youtube"] *[title*="Copy link"],
+iframe[src*="youtube"] *[title*="Share"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Block YouTube's dynamic elements */
+.ytp-button[data-tooltip-target-id*="share"],
+.ytp-button[data-tooltip-target-id*="copy"],
+.ytp-menuitem-label:contains("Copy"),
+.ytp-menuitem-label:contains("Share") {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Prevent any YouTube overlay from appearing */
+iframe[src*="youtube"] {
+  pointer-events: none !important;
+}
+
+/* Re-enable pointer events only for Plyr controls */
+.plyr__controls,
+.plyr__control {
+  pointer-events: auto !important;
+}
+
+/* Block any floating YouTube elements */
+.ytp-ce-element,
+.ytp-cards-teaser,
+.ytp-endscreen-element,
+.ytp-suggested-action {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}

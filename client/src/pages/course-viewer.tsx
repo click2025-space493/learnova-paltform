@@ -3,8 +3,9 @@ import { useRoute, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
-import Navigation from "@/components/navigation";
-import Footer from "@/components/footer";
+import { copyLinkBlocker } from "@/utils/copyLinkBlocker";
+// import Navigation from "@/components/navigation"; // Removed for full-screen video experience
+// import Footer from "@/components/footer"; // Removed for full-screen video experience
 import VideoPlayer from "@/components/video-player";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,9 @@ import {
   ChevronDown,
   ChevronRight,
   Award,
-  AlertCircle
+  AlertCircle,
+  X,
+  ArrowLeft
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -65,9 +68,22 @@ export default function CourseViewer() {
   const [, setLocation] = useLocation();
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
   const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
+  const [autoplayEnabled, setAutoplayEnabled] = useState(false);
+  const [showPlayButton, setShowPlayButton] = useState(false);
+
+  // Handle autoplay state - don't reset it automatically
+  useEffect(() => {
+    if (currentLesson && autoplayEnabled) {
+      console.log('Video selected with autoplay:', currentLesson.title)
+      // Keep autoplay enabled for this lesson
+    }
+  }, [currentLesson, autoplayEnabled])
 
   // Global security measures for the entire course page
   useEffect(() => {
+    // Activate aggressive copy link blocker for this page
+    copyLinkBlocker.start();
+    
     // Block all function keys and developer tools shortcuts
     const handleKeyDown = (e: KeyboardEvent) => {
       // Block all F keys (F1-F12)
@@ -88,8 +104,13 @@ export default function CourseViewer() {
       }
     };
 
-    // Disable right-click globally
+    // Disable right-click but allow on buttons
     const handleContextMenu = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // Allow right-click on buttons for accessibility
+      if (target.tagName === 'BUTTON' || target.closest('button') || target.closest('[role="button"]')) {
+        return true;
+      }
       e.preventDefault();
       return false;
     };
@@ -101,9 +122,24 @@ export default function CourseViewer() {
       return false;
     };
 
-    // Disable text selection
-    const handleSelectStart = () => false;
-    const handleMouseDown = () => false;
+    // Disable text selection but allow button clicks
+    const handleSelectStart = (e: Event) => {
+      const target = e.target as HTMLElement;
+      // Allow selection on buttons and interactive elements
+      if (target.tagName === 'BUTTON' || target.closest('button') || target.closest('[role="button"]')) {
+        return true;
+      }
+      return false;
+    };
+    
+    const handleMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // Allow mouse down on buttons and interactive elements
+      if (target.tagName === 'BUTTON' || target.closest('button') || target.closest('[role="button"]') || target.closest('.plyr__control')) {
+        return true;
+      }
+      return false;
+    };
 
     // Detect developer tools
     let devtools = { open: false };
@@ -413,7 +449,6 @@ export default function CourseViewer() {
   if (isLoading) {
     return (
       <div className="min-h-screen">
-        <Navigation />
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
@@ -428,7 +463,6 @@ export default function CourseViewer() {
   if (!isLoading && !enrollment && course) {
     return (
       <div className="min-h-screen">
-        <Navigation />
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <AlertCircle className="h-16 w-16 text-orange-500 mx-auto mb-4" />
@@ -446,7 +480,6 @@ export default function CourseViewer() {
   if (!course) {
     return (
       <div className="min-h-screen">
-        <Navigation />
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <h2 className="text-2xl font-bold mb-2">Course Not Found</h2>
@@ -459,7 +492,17 @@ export default function CourseViewer() {
 
   return (
     <div className="min-h-screen">
-      <Navigation />
+      {/* Minimal Header with Exit Button */}
+      <div className="absolute top-4 right-4 z-50">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setLocation(`/courses/${params?.id}`)}
+          className="bg-black/50 hover:bg-black/70 text-white border-0"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
       
       <div className="flex flex-col lg:flex-row">
         {/* Sidebar - Course Content */}
@@ -512,7 +555,38 @@ export default function CourseViewer() {
                           <Button
                             variant={currentLesson?.id === lesson.id ? "secondary" : "ghost"}
                             className="w-full justify-start p-2 lg:p-3 h-auto text-left"
-                            onClick={() => setCurrentLesson(lesson)}
+                            onClick={(e) => {
+                              console.log('Lesson selected:', lesson.title)
+                              
+                              // Simulate user interaction for autoplay
+                              e.preventDefault()
+                              e.stopPropagation()
+                              
+                              setAutoplayEnabled(true) // Enable autoplay for this selection
+                              setShowPlayButton(false) // Hide any existing play button
+                              setCurrentLesson(lesson)
+                              
+                              // Auto-scroll to video player on mobile
+                              setTimeout(() => {
+                                const videoElement = document.querySelector('.aspect-video')
+                                if (videoElement) {
+                                  videoElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                                }
+                              }, 100)
+                              
+                              // Try to trigger autoplay after iframe loads
+                              setTimeout(() => {
+                                const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
+                                if (iframe && iframe.contentWindow) {
+                                  try {
+                                    // Send play command to YouTube iframe
+                                    iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*')
+                                  } catch (error) {
+                                    console.log('Could not send play command:', error)
+                                  }
+                                }
+                              }, 1500)
+                            }}
                           >
                             <div className="flex items-center gap-2 lg:gap-3 w-full min-w-0">
                               <div className="flex-shrink-0">
@@ -612,8 +686,40 @@ export default function CourseViewer() {
                       onContextMenu={(e) => e.preventDefault()}
                       onDragStart={(e) => e.preventDefault()}
                     >
+                      {/* Loading indicator */}
+                      {autoplayEnabled && (
+                        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
+                          <div className="text-white text-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+                            <p className="text-sm">Starting video...</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Fallback play button if autoplay fails */}
+                      {showPlayButton && !autoplayEnabled && (
+                        <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center z-20">
+                          <button
+                            className="w-20 h-20 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center text-white text-2xl transition-all duration-200 shadow-lg"
+                            onClick={() => {
+                              setShowPlayButton(false)
+                              const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
+                              if (iframe && iframe.contentWindow) {
+                                try {
+                                  iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*')
+                                } catch (error) {
+                                  console.log('Could not send play command:', error)
+                                }
+                              }
+                            }}
+                          >
+                            ▶️
+                          </button>
+                        </div>
+                      )}
                       <iframe
-                        src={`https://www.youtube-nocookie.com/embed/${(currentLesson as any).youtube_video_id}?rel=0&modestbranding=1&showinfo=0&controls=0&disablekb=1&fs=1&iv_load_policy=3&cc_load_policy=0&playsinline=1&origin=${window.location.origin}&enablejsapi=1&title=0`}
+                        key={`${currentLesson?.id}-${autoplayEnabled}`} // Force re-render when lesson or autoplay changes
+                        src={`https://www.youtube-nocookie.com/embed/${(currentLesson as any).youtube_video_id}?autoplay=1&rel=0&modestbranding=1&showinfo=0&controls=1&disablekb=0&fs=1&iv_load_policy=3&cc_load_policy=0&playsinline=1&origin=${window.location.origin}&enablejsapi=1&title=0&mute=0&start=0`}
                         title=""
                         className="w-full h-full select-none"
                         frameBorder="0"
@@ -622,6 +728,14 @@ export default function CourseViewer() {
                         sandbox="allow-scripts allow-same-origin allow-presentation"
                         onContextMenu={(e) => e.preventDefault()}
                         onDragStart={(e) => e.preventDefault()}
+                        onLoad={() => {
+                          console.log('Video iframe loaded')
+                          // Hide loading indicator and show play button if autoplay fails
+                          setTimeout(() => {
+                            setAutoplayEnabled(false)
+                            setShowPlayButton(true) // Show manual play button as fallback
+                          }, 2000)
+                        }}
                         style={{ 
                           pointerEvents: 'auto',
                           userSelect: 'none',
@@ -799,8 +913,6 @@ export default function CourseViewer() {
           </div>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }

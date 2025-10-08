@@ -103,6 +103,94 @@ export function CustomYouTubePlayer({
     return () => clearInterval(interval)
   }, [])
 
+  // Aggressive copy link blocker - runs continuously
+  useEffect(() => {
+    const blockCopyLinkElements = () => {
+      // Target ONLY YouTube copy/share elements - be specific!
+      const selectors = [
+        '.ytp-copylink-button',
+        '.ytp-share-button',
+        '.ytp-share-panel',
+        'iframe[src*="youtube"] button[aria-label*="Copy link"]',
+        'iframe[src*="youtube"] button[aria-label*="Share"]',
+        'iframe[src*="youtube"] button[title*="Copy link"]',
+        'iframe[src*="youtube"] button[title*="Share"]',
+        '.ytp-contextmenu',
+        '.ytp-popup',
+        '.ytp-chrome-top',
+        '.ytp-chrome-bottom',
+        '.ytp-watermark',
+        '.ytp-title',
+        '.ytp-pause-overlay'
+      ]
+
+      selectors.forEach(selector => {
+        const elements = document.querySelectorAll(selector)
+        elements.forEach(element => {
+          if (element instanceof HTMLElement) {
+            element.style.display = 'none'
+            element.style.visibility = 'hidden'
+            element.style.opacity = '0'
+            element.style.pointerEvents = 'none'
+            element.style.position = 'absolute'
+            element.style.left = '-9999px'
+            element.style.top = '-9999px'
+            element.style.width = '0'
+            element.style.height = '0'
+            element.remove() // Completely remove the element
+          }
+        })
+      })
+
+      // Block any iframe content that might show YouTube UI
+      const iframes = document.querySelectorAll('iframe[src*="youtube"]')
+      iframes.forEach(iframe => {
+        if (iframe instanceof HTMLIFrameElement) {
+          iframe.style.pointerEvents = 'none'
+          
+          // Try to access iframe content and block elements (if same-origin)
+          try {
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
+            if (iframeDoc) {
+              selectors.forEach(selector => {
+                const elements = iframeDoc.querySelectorAll(selector)
+                elements.forEach(element => {
+                  if (element instanceof HTMLElement) {
+                    element.style.display = 'none'
+                    element.remove()
+                  }
+                })
+              })
+            }
+          } catch (e) {
+            // Cross-origin iframe - can't access content, but that's expected
+            console.log('Cross-origin iframe detected (expected for YouTube)')
+          }
+        }
+      })
+    }
+
+    // Run immediately
+    blockCopyLinkElements()
+
+    // Run every 500ms to catch dynamically loaded elements
+    const interval = setInterval(blockCopyLinkElements, 500)
+
+    // Also run on DOM mutations
+    const observer = new MutationObserver(blockCopyLinkElements)
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'id', 'aria-label', 'title']
+    })
+
+    return () => {
+      clearInterval(interval)
+      observer.disconnect()
+    }
+  }, [])
+
   // Initialize Plyr player
   useEffect(() => {
     if (!playerRef.current || !videoId) return
@@ -138,9 +226,11 @@ export function CustomYouTubePlayer({
       iframe.frameBorder = '0'
       iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
       iframe.allowFullscreen = false // Disable YouTube's fullscreen
-      iframe.style.pointerEvents = 'none' // Disable direct interaction
+      iframe.style.pointerEvents = 'none' // Completely disable iframe interaction
       iframe.style.border = 'none'
       iframe.style.outline = 'none'
+      iframe.style.userSelect = 'none'
+      iframe.style.webkitUserSelect = 'none'
       
       // Clear previous content
       playerRef.current.innerHTML = ''
@@ -156,14 +246,7 @@ export function CustomYouTubePlayer({
           modestbranding: 1
         },
         controls: [
-          'play-large', // Large play button in center
-          'play', // Play/pause button
-          'progress', // Progress bar
-          'current-time', // Current time
-          'duration', // Duration
-          'mute', // Mute button
-          'volume', // Volume control
-          'fullscreen' // Custom fullscreen (not YouTube's)
+          'play-large' // ONLY the large play button in center
         ],
         settings: [], // Remove settings menu
         tooltips: {
@@ -174,8 +257,8 @@ export function CustomYouTubePlayer({
           focused: false, // Disable keyboard shortcuts when focused
           global: false // Disable global keyboard shortcuts
         },
-        clickToPlay: true,
-        hideControls: true, // Auto-hide controls
+        clickToPlay: false, // Disable click to play - only center button works
+        hideControls: false, // Show the play button
         resetOnEnd: false,
         ratio: '16:9', // Maintain aspect ratio
         fullscreen: {
@@ -297,22 +380,48 @@ export function CustomYouTubePlayer({
           </div>
         </div>
 
-        {/* YouTube UI blocking overlay - covers any potential YouTube controls */}
-        <div className="absolute inset-0 pointer-events-none z-20 bg-transparent">
-          {/* Block top area where YouTube controls might appear */}
-          <div className="absolute top-0 left-0 right-0 h-12 bg-transparent pointer-events-auto" 
-               style={{ cursor: 'default' }}
-               onClick={(e) => e.stopPropagation()} />
+        {/* Complete overlay - ONLY allow center play button */}
+        <div className="absolute inset-0 z-30">
+          {/* Block everything first */}
+          <div className="absolute inset-0 bg-transparent pointer-events-auto cursor-default" 
+               onClick={(e) => {
+                 e.preventDefault()
+                 e.stopPropagation()
+                 return false
+               }} />
           
-          {/* Block bottom-right corner where share/copy buttons typically appear */}
-          <div className="absolute bottom-0 right-0 w-32 h-16 bg-transparent pointer-events-auto"
-               style={{ cursor: 'default' }}
-               onClick={(e) => e.stopPropagation()} />
-          
-          {/* Block center-right area for any floating controls */}
-          <div className="absolute top-1/2 right-0 w-16 h-24 bg-transparent pointer-events-auto transform -translate-y-1/2"
-               style={{ cursor: 'default' }}
-               onClick={(e) => e.stopPropagation()} />
+          {/* Allow ONLY the center play button area - higher z-index */}
+          <button 
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full pointer-events-auto cursor-pointer z-40 bg-black bg-opacity-20 hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center border-0 outline-none focus:ring-2 focus:ring-white"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              console.log('Play button clicked!')
+              // Trigger play using multiple methods
+              try {
+                if (plyrRef.current) {
+                  console.log('Plyr instance found, current paused state:', plyrRef.current.paused)
+                  if (plyrRef.current.paused) {
+                    plyrRef.current.play()
+                    console.log('Play triggered')
+                  } else {
+                    plyrRef.current.pause()
+                    console.log('Pause triggered')
+                  }
+                } else {
+                  console.log('No Plyr instance found')
+                }
+              } catch (error) {
+                console.error('Error controlling video:', error)
+              }
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            onMouseUp={(e) => e.stopPropagation()}
+          >
+            <div className="w-8 h-8 text-white opacity-80 pointer-events-none">
+              ▶️
+            </div>
+          </button>
         </div>
 
         {/* Anti-screenshot overlay */}
@@ -371,7 +480,13 @@ const customStyles = `
   .plyr--youtube .ytp-button[data-tooltip-target-id*="share"],
   .plyr--youtube .ytp-button[data-tooltip-target-id*="copy"],
   .plyr--youtube .ytp-button[aria-label*="Share"],
-  .plyr--youtube .ytp-button[aria-label*="Copy"] {
+  .plyr--youtube .ytp-button[aria-label*="Copy"],
+  .plyr--youtube button[aria-label*="Copy"],
+  .plyr--youtube button[title*="Copy"],
+  .plyr--youtube *[class*="copy"],
+  .plyr--youtube *[class*="share"],
+  .plyr--youtube *[id*="copy"],
+  .plyr--youtube *[id*="share"] {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
@@ -401,19 +516,25 @@ const customStyles = `
     z-index: 1;
   }
   
-  /* Ensure controls are properly styled */
+  /* Hide ALL Plyr controls - we use our custom button */
   .plyr__controls {
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-    padding: 20px;
-    z-index: 10;
+    display: none !important;
   }
   
-  .plyr__control {
-    color: white;
+  .plyr__control--overlaid {
+    display: none !important;
   }
   
-  .plyr__control:hover {
-    background: rgba(255, 255, 255, 0.2);
+  /* Ensure our custom play button works */
+  button[class*="rounded-full"] {
+    pointer-events: auto !important;
+    z-index: 9999 !important;
+  }
+  
+  /* Make sure button clicks work */
+  .video-player button {
+    pointer-events: auto !important;
+    user-select: none !important;
   }
   
   /* Progress bar styling */
