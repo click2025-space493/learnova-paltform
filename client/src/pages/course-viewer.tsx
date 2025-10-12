@@ -103,7 +103,7 @@ export default function CourseViewer() {
       clearTimeout(controlsTimer)
     }
     
-    // Show controls
+    // Always show controls when mouse moves
     setShowControls(true)
     
     // Hide controls after 3 seconds only in fullscreen
@@ -113,6 +113,7 @@ export default function CourseViewer() {
       }, 3000)
       setControlsTimer(timer)
     }
+    // In normal mode, controls should stay visible (no auto-hide)
   }
 
   // Fullscreen functionality with cross-browser support
@@ -1196,22 +1197,19 @@ export default function CourseViewer() {
                       onContextMenu={(e) => e.preventDefault()}
                       onDragStart={(e) => e.preventDefault()}
                       onMouseMove={() => {
-                        if (isFullscreen) {
-                          showControlsTemporarily()
-                        }
+                        // Always show controls on mouse move, regardless of fullscreen state
+                        showControlsTemporarily()
                       }}
                       onMouseEnter={() => {
-                        if (isFullscreen) {
-                          showControlsTemporarily()
-                        }
+                        // Always show controls when mouse enters video area
+                        showControlsTemporarily()
                       }}
                       onMouseLeave={() => {
                         // No action needed for mouse leave
                       }}
                       onClick={() => {
-                        if (isFullscreen) {
-                          showControlsTemporarily()
-                        }
+                        // Always show controls on click
+                        showControlsTemporarily()
                       }}
                     >
                       {/* Loading indicator */}
@@ -1479,7 +1477,38 @@ export default function CourseViewer() {
                           userSelect: 'none',
                           WebkitUserSelect: 'none'
                         }}
+                        onMouseMove={() => {
+                          // Show controls when mouse moves over iframe
+                          showControlsTemporarily()
+                        }}
+                        onMouseEnter={() => {
+                          // Show controls when mouse enters iframe
+                          showControlsTemporarily()
+                        }}
                       />
+                      
+                      {/* Mouse event capture overlay - ensures controls appear on mouse movement */}
+                      <div 
+                        className="absolute inset-0 pointer-events-auto"
+                        style={{ 
+                          background: 'transparent',
+                          zIndex: 2,
+                          cursor: 'default'
+                        }}
+                        onMouseMove={() => {
+                          // Always show controls when mouse moves over video
+                          showControlsTemporarily()
+                        }}
+                        onMouseEnter={() => {
+                          // Always show controls when mouse enters video
+                          showControlsTemporarily()
+                        }}
+                        onClick={() => {
+                          // Show controls and pass click through to iframe
+                          showControlsTemporarily()
+                        }}
+                      />
+                      
                       {/* Multiple security overlays */}
                       <div 
                         className="absolute inset-0 pointer-events-none select-none"
