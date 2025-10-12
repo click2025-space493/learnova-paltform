@@ -1339,12 +1339,15 @@ export default function CourseViewer() {
                             {/* Left controls - Skip backward */}
                             <div className="flex items-center gap-2">
                               <button
-                                className="p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all duration-200"
+                                className="p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all duration-200 hover:scale-110"
                                 onClick={() => {
-                                  const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
-                                  if (iframe && iframe.contentWindow) {
-                                    iframe.contentWindow.postMessage('{"event":"command","func":"seekBy","args":[-10]}', '*')
-                                  }
+                                  // Skip backward 10 seconds using seekToTime
+                                  const newTime = Math.max(0, currentTime - 10)
+                                  seekToTime(newTime)
+                                  console.log(`Skipping backward from ${currentTime}s to ${newTime}s`)
+                                  
+                                  // Show controls when button is clicked
+                                  showControlsTemporarily()
                                 }}
                                 title="Skip backward 10 seconds"
                               >
@@ -1368,12 +1371,15 @@ export default function CourseViewer() {
                             <div className="flex items-center gap-2">
                               <span className="text-white text-sm">+10s</span>
                               <button
-                                className="p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all duration-200"
+                                className="p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all duration-200 hover:scale-110"
                                 onClick={() => {
-                                  const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
-                                  if (iframe && iframe.contentWindow) {
-                                    iframe.contentWindow.postMessage('{"event":"command","func":"seekBy","args":[10]}', '*')
-                                  }
+                                  // Skip forward 10 seconds using seekToTime
+                                  const newTime = Math.min(duration || currentTime + 10, currentTime + 10)
+                                  seekToTime(newTime)
+                                  console.log(`Skipping forward from ${currentTime}s to ${newTime}s`)
+                                  
+                                  // Show controls when button is clicked
+                                  showControlsTemporarily()
                                 }}
                                 title="Skip forward 10 seconds"
                               >
