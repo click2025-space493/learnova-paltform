@@ -20,6 +20,21 @@ interface CourseCardProps {
 export default function CourseCard({ course }: CourseCardProps) {
   const totalDuration = course.lessons?.reduce((acc, lesson) => acc + (lesson.duration || 0), 0) || 0;
   const lessonCount = course.lessons?.length || 0;
+  
+  // Determine instructor name based on course
+  const getInstructorName = () => {
+    if (course.title === "Digital Control" || course.title === "Motion Control") {
+      return "Eng Ahmed Samir";
+    }
+    return "Eng Mohammed Essa";
+  };
+  
+  const getInstructorInitials = () => {
+    if (course.title === "Digital Control" || course.title === "Motion Control") {
+      return "AS";
+    }
+    return "ME";
+  };
 
   return (
     <Link href={`/courses/${course.id}`}>
@@ -65,13 +80,11 @@ export default function CourseCard({ course }: CourseCardProps) {
               <Avatar className="h-6 w-6 sm:h-8 sm:w-8 mr-2">
                 <AvatarImage src={course.teacher?.profileImageUrl || ""} />
                 <AvatarFallback data-testid={`instructor-initials-${course.id}`} className="text-xs">
-                  {course.teacher?.firstName?.[0] || 'T'}
+                  {getInstructorInitials()}
                 </AvatarFallback>
               </Avatar>
               <span className="text-xs sm:text-sm text-muted-foreground truncate" data-testid={`instructor-name-${course.id}`}>
-                {course.teacher?.firstName && course.teacher?.lastName
-                  ? `${course.teacher.firstName} ${course.teacher.lastName}`
-                  : "Unknown Instructor"}
+                {getInstructorName()}
               </span>
             </div>
             <span className="text-base sm:text-lg font-bold text-primary" data-testid={`course-price-${course.id}`}>
@@ -80,17 +93,13 @@ export default function CourseCard({ course }: CourseCardProps) {
           </div>
           
           <div className="pt-3 sm:pt-4 border-t border-border">
-            <div className="flex items-center justify-between sm:justify-start text-xs sm:text-sm text-muted-foreground">
+            <div className="flex items-center justify-center text-xs sm:text-sm text-muted-foreground">
               <div className="flex items-center">
-                <PlayCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                <span data-testid={`course-lessons-${course.id}`}>
-                  {lessonCount} lesson{lessonCount !== 1 ? 's' : ''}
-                </span>
-              </div>
-              <div className="flex items-center">
-                <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 ml-2 sm:ml-4" />
-                <span data-testid={`course-duration-${course.id}`}>
-                  {Math.ceil(totalDuration / 60)} hour{Math.ceil(totalDuration / 60) !== 1 ? 's' : ''}
+                <Clock className="h-4 w-4 mr-2 text-primary" />
+                <span data-testid={`course-total-hours-${course.id}`} className="font-medium">
+                  {totalDuration > 0 
+                    ? `${Math.ceil(totalDuration / 60)} Total Watching Hours`
+                    : 'Course Duration TBA'}
                 </span>
               </div>
             </div>
