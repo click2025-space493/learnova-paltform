@@ -645,10 +645,19 @@ export default function CourseViewer() {
       return false;
     };
 
-    // Detect developer tools
+    // Detect developer tools (exclude mobile devices)
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet/i.test(navigator.userAgent) || 
+                    window.innerWidth <= 768 || 
+                    'ontouchstart' in window || 
+                    navigator.maxTouchPoints > 0;
+    
+    // Only run developer tools detection on desktop devices
     let devtools = { open: false };
     const threshold = 160;
     const detectDevTools = () => {
+      // Skip detection for mobile devices
+      if (isMobile) return;
+      
       if (window.outerHeight - window.innerHeight > threshold || 
           window.outerWidth - window.innerWidth > threshold) {
         if (!devtools.open) {
@@ -1167,18 +1176,26 @@ export default function CourseViewer() {
                             return false;
                           });
                           
-                          // Detect developer tools
-                          let devtools = {open: false, orientation: null};
-                          const threshold = 160;
-                          setInterval(function() {
-                            if (window.outerHeight - window.innerHeight > threshold || 
-                                window.outerWidth - window.innerWidth > threshold) {
-                              if (!devtools.open) {
-                                devtools.open = true;
-                                document.body.innerHTML = '<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;z-index:999999;">Access Denied</div>';
+                          // Detect developer tools (exclude mobile devices)
+                          const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet/i.test(navigator.userAgent) || 
+                                          window.innerWidth <= 768 || 
+                                          'ontouchstart' in window || 
+                                          navigator.maxTouchPoints > 0;
+                          
+                          // Only run developer tools detection on desktop devices
+                          if (!isMobile) {
+                            let devtools = {open: false, orientation: null};
+                            const threshold = 160;
+                            setInterval(function() {
+                              if (window.outerHeight - window.innerHeight > threshold || 
+                                  window.outerWidth - window.innerWidth > threshold) {
+                                if (!devtools.open) {
+                                  devtools.open = true;
+                                  document.body.innerHTML = '<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;z-index:999999;">Access Denied - Developer Tools Detected</div>';
+                                }
                               }
-                            }
-                          }, 500);
+                            }, 500);
+                          }
                           
                           // Disable text selection
                           document.onselectstart = function() { return false; };
