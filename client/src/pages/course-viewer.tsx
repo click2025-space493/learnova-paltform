@@ -1267,6 +1267,7 @@ export default function CourseViewer() {
                             </div>
                             <div 
                               className="relative w-full h-2 bg-white/30 rounded-full cursor-pointer group hover:h-3 transition-all duration-200"
+                              style={{ touchAction: 'none' }}
                               onClick={(e) => {
                                 e.preventDefault()
                                 e.stopPropagation()
@@ -1329,6 +1330,52 @@ export default function CourseViewer() {
                                 
                                 document.addEventListener('mousemove', handleMouseMove)
                                 document.addEventListener('mouseup', handleMouseUp)
+                              }}
+                              onTouchStart={(e) => {
+                                e.preventDefault()
+                                if (!e.currentTarget || duration <= 0) return
+                                
+                                setIsDragging(true)
+                                const progressBar = e.currentTarget
+                                const touch = e.touches[0]
+                                
+                                const handleTouchMove = (moveEvent: TouchEvent) => {
+                                  if (duration > 0 && progressBar && moveEvent.touches[0]) {
+                                    try {
+                                      const rect = progressBar.getBoundingClientRect()
+                                      if (rect && typeof rect.width === 'number' && rect.width > 0 && typeof rect.left === 'number') {
+                                        const moveX = moveEvent.touches[0].clientX - rect.left
+                                        const percentage = Math.max(0, Math.min(1, moveX / rect.width))
+                                        const newTime = percentage * duration
+                                        setCurrentTime(newTime)
+                                      }
+                                    } catch (error) {
+                                      console.log('Error in touch move:', error)
+                                    }
+                                  }
+                                }
+                                
+                                const handleTouchEnd = (endEvent: TouchEvent) => {
+                                  if (duration > 0 && progressBar) {
+                                    try {
+                                      const rect = progressBar.getBoundingClientRect()
+                                      if (rect && typeof rect.width === 'number' && rect.width > 0 && typeof rect.left === 'number') {
+                                        const endX = touch.clientX - rect.left
+                                        const percentage = Math.max(0, Math.min(1, endX / rect.width))
+                                        const newTime = percentage * duration
+                                        seekToTime(newTime)
+                                      }
+                                    } catch (error) {
+                                      console.log('Error in touch end:', error)
+                                    }
+                                  }
+                                  setIsDragging(false)
+                                  document.removeEventListener('touchmove', handleTouchMove)
+                                  document.removeEventListener('touchend', handleTouchEnd)
+                                }
+                                
+                                document.addEventListener('touchmove', handleTouchMove, { passive: false })
+                                document.addEventListener('touchend', handleTouchEnd)
                               }}
                               style={{ pointerEvents: 'auto' }}
                             >
