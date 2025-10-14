@@ -1356,18 +1356,9 @@ export default function CourseViewer() {
                                 }
                                 
                                 const handleTouchEnd = (endEvent: TouchEvent) => {
-                                  if (duration > 0 && progressBar) {
-                                    try {
-                                      const rect = progressBar.getBoundingClientRect()
-                                      if (rect && typeof rect.width === 'number' && rect.width > 0 && typeof rect.left === 'number') {
-                                        const endX = touch.clientX - rect.left
-                                        const percentage = Math.max(0, Math.min(1, endX / rect.width))
-                                        const newTime = percentage * duration
-                                        seekToTime(newTime)
-                                      }
-                                    } catch (error) {
-                                      console.log('Error in touch end:', error)
-                                    }
+                                  // Use the current time that was set during dragging, not touch position
+                                  if (duration > 0) {
+                                    seekToTime(currentTime)
                                   }
                                   setIsDragging(false)
                                   document.removeEventListener('touchmove', handleTouchMove)
