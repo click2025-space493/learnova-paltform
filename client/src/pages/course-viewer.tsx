@@ -103,17 +103,14 @@ export default function CourseViewer() {
       clearTimeout(controlsTimer)
     }
     
-    // Always show controls when mouse moves
+    // Always show controls when user interacts
     setShowControls(true)
     
-    // Hide controls after 3 seconds only in fullscreen
-    if (isFullscreen) {
-      const timer = setTimeout(() => {
-        setShowControls(false)
-      }, 3000)
-      setControlsTimer(timer)
-    }
-    // In normal mode, controls should stay visible (no auto-hide)
+    // Hide controls after 10 seconds in both fullscreen and normal view
+    const timer = setTimeout(() => {
+      setShowControls(false)
+    }, 10000) // Changed to 10 seconds
+    setControlsTimer(timer)
   }
 
   // Fullscreen functionality with cross-browser support
@@ -1226,6 +1223,18 @@ export default function CourseViewer() {
                       }}
                       onClick={() => {
                         // Always show controls on click
+                        showControlsTemporarily()
+                      }}
+                      onTouchStart={() => {
+                        // Show controls on touch start
+                        showControlsTemporarily()
+                      }}
+                      onTouchMove={() => {
+                        // Show controls on touch move
+                        showControlsTemporarily()
+                      }}
+                      onTouchEnd={() => {
+                        // Show controls on touch end
                         showControlsTemporarily()
                       }}
                     >
