@@ -1267,7 +1267,7 @@ export default function CourseViewer() {
                             </div>
                             <div 
                               className="relative w-full h-2 bg-white/30 rounded-full cursor-pointer group hover:h-3 transition-all duration-200"
-                              style={{ touchAction: 'none' }}
+                              style={{ touchAction: 'none', pointerEvents: 'auto' }}
                               onClick={(e) => {
                                 e.preventDefault()
                                 e.stopPropagation()
@@ -1368,7 +1368,6 @@ export default function CourseViewer() {
                                 document.addEventListener('touchmove', handleTouchMove, { passive: false })
                                 document.addEventListener('touchend', handleTouchEnd)
                               }}
-                              style={{ pointerEvents: 'auto' }}
                             >
                               {/* Progress fill */}
                               <div 
