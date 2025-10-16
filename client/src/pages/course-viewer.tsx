@@ -85,6 +85,11 @@ export default function CourseViewer() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [seekFeedback, setSeekFeedback] = useState<{ show: boolean; text: string; key: number }>({ 
+    show: false, 
+    text: '', 
+    key: 0 
+  });
 
   // Handle autoplay state - don't reset it automatically
   useEffect(() => {
@@ -111,6 +116,16 @@ export default function CourseViewer() {
       setShowControls(false)
     }, 10000) // Changed to 10 seconds
     setControlsTimer(timer)
+  }
+
+  // Show seek feedback overlay
+  const showSeekFeedback = (text: string) => {
+    setSeekFeedback({ show: true, text, key: Date.now() })
+    
+    // Hide feedback after 1 second
+    setTimeout(() => {
+      setSeekFeedback(prev => ({ ...prev, show: false }))
+    }, 1000)
   }
 
   // Fullscreen functionality with cross-browser support
@@ -518,21 +533,29 @@ export default function CourseViewer() {
       }
       
       if (e.key === 'ArrowLeft') {
-        // Allow left arrow for skip backward (5 seconds for fine control)
+        // Left arrow: trigger the backward button (10 seconds)
         e.preventDefault();
-        const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
-        if (iframe && iframe.contentWindow) {
-          iframe.contentWindow.postMessage('{"event":"command","func":"seekBy","args":[-5]}', '*')
+        
+        // Find and click the backward button
+        const backwardButton = document.querySelector('button[title="Skip backward 10 seconds"]') as HTMLButtonElement;
+        if (backwardButton) {
+          backwardButton.click();
+          showSeekFeedback('-10s');
+          console.log('⬅️ Keyboard: Triggered backward button');
         }
         return false;
       }
       
       if (e.key === 'ArrowRight') {
-        // Allow right arrow for skip forward (5 seconds for fine control)
+        // Right arrow: trigger the forward button (10 seconds)
         e.preventDefault();
-        const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
-        if (iframe && iframe.contentWindow) {
-          iframe.contentWindow.postMessage('{"event":"command","func":"seekBy","args":[5]}', '*')
+        
+        // Find and click the forward button
+        const forwardButton = document.querySelector('button[title="Skip forward 10 seconds"]') as HTMLButtonElement;
+        if (forwardButton) {
+          forwardButton.click();
+          showSeekFeedback('+10s');
+          console.log('➡️ Keyboard: Triggered forward button');
         }
         return false;
       }
@@ -1149,6 +1172,30 @@ export default function CourseViewer() {
 
                 {currentLesson.type === 'video' && (currentLesson as any).youtube_video_id ? (
                   <div className="space-y-4">
+                    {/* CSS Animation for Seek Feedback */}
+                    <style>
+                      {`
+                        @keyframes fadeInOut {
+                          0% {
+                            opacity: 0;
+                            transform: scale(0.8);
+                          }
+                          20% {
+                            opacity: 1;
+                            transform: scale(1.1);
+                          }
+                          80% {
+                            opacity: 1;
+                            transform: scale(1);
+                          }
+                          100% {
+                            opacity: 0;
+                            transform: scale(0.9);
+                          }
+                        }
+                      `}
+                    </style>
+                    
                     {/* Developer Tools Prevention */}
                     <script
                       dangerouslySetInnerHTML={{
@@ -1247,6 +1294,21 @@ export default function CourseViewer() {
                           </div>
                         </div>
                       )}
+
+                      {/* Seek Feedback Overlay */}
+                      {seekFeedback.show && (
+                        <div 
+                          key={seekFeedback.key}
+                          className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none"
+                          style={{
+                            animation: 'fadeInOut 1s ease-out forwards'
+                          }}
+                        >
+                          <div className="bg-black/80 text-white px-6 py-3 rounded-xl text-3xl font-bold shadow-lg border border-white/20">
+                            {seekFeedback.text}
+                          </div>
+                        </div>
+                      )}
                       
 
 
@@ -1257,7 +1319,7 @@ export default function CourseViewer() {
                             <div>Move mouse or press any key to show controls</div>
                             <div className="text-xs mt-1 opacity-80">
                               <div>Speed: {playbackSpeed}x | +/- to adjust | 1 to reset</div>
-                              <div>←→ 5s | J/L 10s | K/Space play/pause | F fullscreen</div>
+                              <div>←→ 10s | J/L 10s | K/Space play/pause | F fullscreen</div>
                             </div>
                           </div>
                         </div>
