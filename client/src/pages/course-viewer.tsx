@@ -968,7 +968,7 @@ export default function CourseViewer() {
     queryFn: async () => {
       if (!params?.id || !user?.id) return null;
       
-      console.log('Checking enrollment for course:', params.id, 'user:', user.id);
+      // Check enrollment for course access
       
       // First check for direct enrollment
       const { data: enrollmentData, error: enrollmentError } = await supabase
@@ -978,7 +978,7 @@ export default function CourseViewer() {
         .eq('student_id', user.id)
         .maybeSingle();
       
-      console.log('Enrollment query result:', { data: enrollmentData, error: enrollmentError });
+      // Process enrollment data
       
       if (enrollmentData) {
         return enrollmentData;
@@ -993,7 +993,7 @@ export default function CourseViewer() {
         .eq('status', 'approved')
         .maybeSingle();
       
-      console.log('Approved request query result:', { data: requestData, error: requestError });
+      // Process request data
       
       if (requestData) {
         // If we have an approved request, treat it as valid access
@@ -1054,7 +1054,7 @@ export default function CourseViewer() {
       
       if (error) throw error;
       
-      console.log('Raw course data from database:', data);
+      // Transform the data to match our interface
       
       // Transform the data to match our interface
       const transformedData = {
@@ -1063,16 +1063,12 @@ export default function CourseViewer() {
         chapters: data.chapters?.map((chapter: any) => ({
           ...chapter,
           lessons: chapter.lessons?.map((lesson: any) => {
-            console.log('Lesson data:', lesson);
-            console.log('YouTube Video ID:', lesson.youtube_video_id);
-            console.log('YouTube Video URL:', lesson.youtube_video_url);
-            console.log('Legacy Video URL:', lesson.video_url);
             return lesson;
           }) || []
         })) || []
       };
       
-      console.log('Transformed course data:', transformedData);
+      // Return processed course data
       
       return transformedData;
     },
@@ -1337,7 +1333,7 @@ export default function CourseViewer() {
                             variant={currentLesson?.id === lesson.id ? "secondary" : "ghost"}
                             className="w-full justify-start p-2 lg:p-3 h-auto text-left"
                             onClick={(e) => {
-                              console.log('Lesson selected:', lesson.title)
+                              // Lesson selected for viewing
                               
                               // Simulate user interaction for autoplay
                               e.preventDefault()
@@ -1368,7 +1364,7 @@ export default function CourseViewer() {
                                   try {
                                     // Send play command to YouTube iframe
                                     iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*')
-                                    console.log('Sent autoplay command to new video')
+                                    // Autoplay command sent
                                   } catch (error) {
                                     console.log('Could not send play command:', error)
                                   }
@@ -1898,7 +1894,7 @@ export default function CourseViewer() {
                         onContextMenu={(e) => e.preventDefault()}
                         onDragStart={(e) => e.preventDefault()}
                         onLoad={() => {
-                          console.log('Video iframe loaded for lesson:', currentLesson?.title)
+                          // Video iframe loaded
                           // Initialize video controls after iframe loads
                           setTimeout(() => {
                             setAutoplayEnabled(false)
@@ -1908,7 +1904,7 @@ export default function CourseViewer() {
                               try {
                                 // Initialize YouTube API listener
                                 iframe.contentWindow.postMessage('{"event":"listening","id":"' + currentLesson?.id + '"}', '*')
-                                console.log('YouTube API listener initialized for new video')
+                                // YouTube API listener initialized
                               } catch (error) {
                                 console.log('Could not initialize YouTube API:', error)
                               }
