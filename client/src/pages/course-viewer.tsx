@@ -100,6 +100,201 @@ export default function CourseViewer() {
     }
   }, [currentLesson, autoplayEnabled])
 
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isCurrentlyFullscreen = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      )
+      setIsFullscreen(isCurrentlyFullscreen)
+    }
+
+    // Add event listeners for all browsers
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange)
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange)
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange)
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange)
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange)
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange)
+    }
+  }, [])
+
+  // Screen recording protection
+  useEffect(() => {
+    let isBlocked = false
+    
+    const blockPage = () => {
+      if (isBlocked) return
+      isBlocked = true
+      
+      document.body.innerHTML = `
+        <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:24px;z-index:999999;font-family:Arial,sans-serif;">
+          <div style="text-align:center;">
+            <h1 style="color:#ff4444;margin-bottom:20px;">🚫 RECORDING BLOCKED</h1>
+            <p style="margin-bottom:10px;">Screen Recording Detected</p>
+            <p style="font-size:16px;color:#ccc;">Stop screen recording and refresh the page</p>
+            <p style="font-size:14px;color:#888;margin-top:20px;">Video content is protected from unauthorized recording</p>
+          </div>
+        </div>
+      `
+    }
+
+    // Detect screen recording via getDisplayMedia API
+    const detectScreenRecording = () => {
+      // Check if screen capture is active
+      if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+        // Override getDisplayMedia to detect screen recording attempts
+        const originalGetDisplayMedia = navigator.mediaDevices.getDisplayMedia
+        navigator.mediaDevices.getDisplayMedia = function(...args) {
+          console.log('Screen recording attempt detected!')
+          blockPage()
+          return Promise.reject(new Error('Screen recording is not allowed'))
+        }
+      }
+
+      // Check for screen recording via getUserMedia
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        const originalGetUserMedia = navigator.mediaDevices.getUserMedia
+        navigator.mediaDevices.getUserMedia = function(constraints) {
+          // Block if trying to capture screen
+          if (constraints && constraints.video && 
+              (constraints.video as any).mediaSource === 'screen') {
+            console.log('Screen capture via getUserMedia detected!')
+            blockPage()
+            return Promise.reject(new Error('Screen recording is not allowed'))
+          }
+          return originalGetUserMedia.call(this, constraints)
+        }
+      }
+
+      // Detect common screen recording software
+      const checkForRecordingSoftware = () => {
+        // Check for OBS Studio
+        if ((window as any).obsstudio || (window as any).obs) {
+          console.log('OBS Studio detected!')
+          blockPage()
+          return
+        }
+
+        // Check for Bandicam
+        if ((window as any).bandicam) {
+          console.log('Bandicam detected!')
+          blockPage()
+          return
+        }
+
+        // Check for Camtasia
+        if ((window as any).camtasia) {
+          console.log('Camtasia detected!')
+          blockPage()
+          return
+        }
+
+        // Check for common recording extensions
+        const suspiciousExtensions = [
+          'screen-recorder',
+          'video-recorder', 
+          'capture-screen',
+          'record-screen',
+          'screencastify',
+          'loom',
+          'nimbus'
+        ]
+
+        suspiciousExtensions.forEach(ext => {
+          if (document.querySelector(`[data-extension="${ext}"]`) ||
+              document.querySelector(`[class*="${ext}"]`) ||
+              document.querySelector(`[id*="${ext}"]`)) {
+            console.log(`Recording extension detected: ${ext}`)
+            blockPage()
+          }
+        })
+      }
+
+      // Monitor for recording indicators
+      const checkRecordingIndicators = () => {
+        // Check for red recording dot (common in browsers)
+        const recordingIndicators = document.querySelectorAll('[class*="recording"], [class*="capture"], [id*="recording"], [id*="capture"]')
+        if (recordingIndicators.length > 0) {
+          console.log('Recording indicators detected!')
+          blockPage()
+        }
+
+        // Check for browser recording UI
+        if (document.querySelector('[data-testid*="recording"]') ||
+            document.querySelector('[aria-label*="recording"]') ||
+            document.querySelector('[title*="recording"]')) {
+          console.log('Browser recording UI detected!')
+          blockPage()
+        }
+      }
+
+      // Check for screen recording periodically
+      checkForRecordingSoftware()
+      checkRecordingIndicators()
+    }
+
+    // Run detection immediately and periodically
+    detectScreenRecording()
+    const recordingDetectionInterval = setInterval(detectScreenRecording, 1000)
+
+    // Monitor visibility changes (recording software often changes visibility)
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Page is hidden, might be due to recording software
+        setTimeout(() => {
+          if (document.hidden) {
+            console.log('Page hidden for extended time - possible recording')
+            // Don't block immediately, but increase monitoring
+            detectScreenRecording()
+          }
+        }, 2000)
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    // Monitor for suspicious DOM changes
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as Element
+              const className = element.className?.toString().toLowerCase() || ''
+              const id = element.id?.toLowerCase() || ''
+              
+              if (className.includes('record') || className.includes('capture') ||
+                  id.includes('record') || id.includes('capture')) {
+                console.log('Recording-related element added to DOM!')
+                blockPage()
+              }
+            }
+          })
+        }
+      })
+    })
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    })
+
+    // Cleanup
+    return () => {
+      clearInterval(recordingDetectionInterval)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      observer.disconnect()
+    }
+  }, [])
+
 
   // Controls visibility management
   const showControlsTemporarily = () => {
@@ -128,11 +323,13 @@ export default function CourseViewer() {
     }, 1000)
   }
 
-  // Fullscreen functionality with cross-browser support
+  // Enhanced fullscreen functionality with mobile support
   const toggleFullscreen = async () => {
     const videoContainer = document.querySelector('.video-container') as HTMLElement
-    if (!videoContainer) {
-      console.log('Video container not found')
+    const iframe = document.querySelector('iframe[src*="youtube"]') as HTMLIFrameElement
+    
+    if (!videoContainer && !iframe) {
+      console.log('Video container or iframe not found')
       return
     }
 
@@ -148,15 +345,42 @@ export default function CourseViewer() {
       if (!isCurrentlyFullscreen) {
         console.log('Entering fullscreen...')
         
+        // Detect mobile devices
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet/i.test(navigator.userAgent) || 
+                         window.innerWidth <= 768 || 
+                         'ontouchstart' in window || 
+                         navigator.maxTouchPoints > 0;
+        
+        // Choose the best element for fullscreen
+        let fullscreenElement = videoContainer || iframe;
+        
+        // On mobile, prefer iframe for better YouTube integration
+        if (isMobile && iframe) {
+          fullscreenElement = iframe;
+        }
+        
         // Try different fullscreen methods for cross-browser compatibility
-        if (videoContainer.requestFullscreen) {
-          await videoContainer.requestFullscreen()
-        } else if ((videoContainer as any).webkitRequestFullscreen) {
-          await (videoContainer as any).webkitRequestFullscreen()
-        } else if ((videoContainer as any).mozRequestFullScreen) {
-          await (videoContainer as any).mozRequestFullScreen()
-        } else if ((videoContainer as any).msRequestFullscreen) {
-          await (videoContainer as any).msRequestFullscreen()
+        if (fullscreenElement.requestFullscreen) {
+          await fullscreenElement.requestFullscreen()
+        } else if ((fullscreenElement as any).webkitRequestFullscreen) {
+          // Safari iOS support
+          await (fullscreenElement as any).webkitRequestFullscreen()
+        } else if ((fullscreenElement as any).webkitEnterFullscreen) {
+          // iOS video element support
+          await (fullscreenElement as any).webkitEnterFullscreen()
+        } else if ((fullscreenElement as any).mozRequestFullScreen) {
+          await (fullscreenElement as any).mozRequestFullScreen()
+        } else if ((fullscreenElement as any).msRequestFullscreen) {
+          await (fullscreenElement as any).msRequestFullscreen()
+        }
+        
+        // For YouTube iframe, also send fullscreen command
+        if (iframe && iframe.contentWindow) {
+          try {
+            iframe.contentWindow.postMessage('{"event":"command","func":"requestFullscreen","args":""}', '*')
+          } catch (e) {
+            console.log('Could not send fullscreen command to YouTube:', e)
+          }
         }
         
         console.log('Fullscreen enabled')
@@ -168,6 +392,8 @@ export default function CourseViewer() {
           await document.exitFullscreen()
         } else if ((document as any).webkitExitFullscreen) {
           await (document as any).webkitExitFullscreen()
+        } else if ((document as any).webkitCancelFullScreen) {
+          await (document as any).webkitCancelFullScreen()
         } else if ((document as any).mozCancelFullScreen) {
           await (document as any).mozCancelFullScreen()
         } else if ((document as any).msExitFullscreen) {
@@ -178,6 +404,17 @@ export default function CourseViewer() {
       }
     } catch (err) {
       console.error('Fullscreen error:', err)
+      
+      // Fallback: try to trigger YouTube's native fullscreen
+      if (iframe && iframe.contentWindow) {
+        try {
+          iframe.contentWindow.postMessage('{"event":"command","func":"requestFullscreen","args":""}', '*')
+          console.log('Fallback: Using YouTube native fullscreen')
+        } catch (e) {
+          console.log('Fallback fullscreen failed:', e)
+        }
+      }
+      
       // Reset state based on actual fullscreen status
       const actualFullscreenState = !!(
         document.fullscreenElement ||
@@ -617,13 +854,24 @@ export default function CourseViewer() {
         return false;
       }
 
-      // Block developer tools shortcuts
+      // Block developer tools shortcuts and screen recording shortcuts
       if ((e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) ||
           (e.ctrlKey && (e.key === 'u' || e.key === 'U')) ||
           (e.ctrlKey && (e.key === 's' || e.key === 'S')) ||
-          ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C' || e.key === 'x' || e.key === 'X' || e.key === 'v' || e.key === 'V'))) {
+          ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C' || e.key === 'x' || e.key === 'X' || e.key === 'v' || e.key === 'V')) ||
+          // Block common screen recording shortcuts
+          (e.ctrlKey && e.shiftKey && (e.key === 'R' || e.key === 'r')) || // Chrome screen recording
+          (e.altKey && (e.key === 'R' || e.key === 'r')) || // Alt+R (common recording shortcut)
+          (e.ctrlKey && e.altKey && (e.key === 'R' || e.key === 'r')) || // Ctrl+Alt+R
+          ((e.ctrlKey || e.metaKey) && (e.key === 'r' || e.key === 'R')) || // Ctrl+R (refresh - can be used to start recording)
+          (e.key === 'PrintScreen' || e.key === 'Print') || // Print Screen
+          (e.altKey && e.key === 'PrintScreen') || // Alt+Print Screen
+          (e.ctrlKey && e.key === 'PrintScreen') || // Ctrl+Print Screen
+          ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === '3' || e.key === '4' || e.key === '5')) || // macOS screenshot shortcuts
+          (e.key === 'F9' || e.key === 'F10' || e.key === 'F11')) { // Common recording function keys
         e.preventDefault();
         e.stopPropagation();
+        console.log('Blocked potential recording shortcut:', e.key);
         return false;
       }
     };
@@ -1299,17 +1547,63 @@ export default function CourseViewer() {
                       {seekFeedback.show && (
                         <div 
                           key={seekFeedback.key}
-                          className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none"
-                          style={{
-                            animation: 'fadeInOut 1s ease-out forwards'
-                          }}
+                          className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none"
                         >
-                          <div className="bg-black/80 text-white px-6 py-3 rounded-xl text-3xl font-bold shadow-lg border border-white/20">
+                          <div className="bg-black/80 text-white px-4 py-2 rounded-lg text-lg font-bold animate-pulse">
                             {seekFeedback.text}
                           </div>
                         </div>
                       )}
-                      
+
+                      {/* Anti-Recording Watermark */}
+                      <div className="absolute inset-0 pointer-events-none z-40">
+                        {/* Student Name Watermark */}
+                        <div className="absolute top-4 left-4 bg-black/30 text-white px-2 py-1 rounded text-xs font-mono">
+                          {user?.name || user?.email || 'Student'}
+                        </div>
+                        
+                        {/* Timestamp Watermark */}
+                        <div className="absolute top-4 right-4 bg-black/30 text-white px-2 py-1 rounded text-xs font-mono">
+                          {new Date().toLocaleString()}
+                        </div>
+                        
+                        {/* Course Protection Notice */}
+                        <div className="absolute bottom-4 left-4 bg-black/30 text-white px-2 py-1 rounded text-xs">
+                          Protected Content - {course?.title}
+                        </div>
+                        
+                        {/* Anti-Recording Pattern */}
+                        <div className="absolute inset-0 opacity-5 pointer-events-none">
+                          <div className="w-full h-full" style={{
+                            backgroundImage: `repeating-linear-gradient(
+                              45deg,
+                              transparent,
+                              transparent 50px,
+                              rgba(255,255,255,0.1) 50px,
+                              rgba(255,255,255,0.1) 52px
+                            )`,
+                            backgroundSize: '100px 100px'
+                          }}>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="text-white/10 text-6xl font-bold transform -rotate-45 select-none">
+                                PROTECTED
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Moving watermark to prevent easy removal */}
+                        <div 
+                          className="absolute text-white/20 text-sm font-bold select-none pointer-events-none"
+                          style={{
+                            top: `${20 + Math.sin(Date.now() / 3000) * 10}%`,
+                            left: `${30 + Math.cos(Date.now() / 4000) * 20}%`,
+                            transform: 'rotate(-15deg)'
+                          }}
+                        >
+                          {user?.email || 'Protected Content'}
+                        </div>
+                      </div>
 
 
                       {/* Controls hint when hidden in fullscreen */}
@@ -1563,11 +1857,29 @@ export default function CourseViewer() {
                               </div>
                               
                               <button
-                                className="p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all duration-200"
-                                onClick={toggleFullscreen}
+                                className="p-3 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all duration-200 touch-manipulation"
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  toggleFullscreen()
+                                }}
+                                onTouchStart={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                }}
+                                onTouchEnd={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  toggleFullscreen()
+                                }}
                                 title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                                style={{
+                                  minWidth: '48px',
+                                  minHeight: '48px',
+                                  WebkitTapHighlightColor: 'transparent'
+                                }}
                               >
-                                {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
+                                {isFullscreen ? <Minimize className="h-6 w-6" /> : <Maximize className="h-6 w-6" />}
                               </button>
                             </div>
                           </div>
