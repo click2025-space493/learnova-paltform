@@ -91,6 +91,13 @@ export default function CourseViewer() {
     key: 0 
   });
 
+  // Enhanced device detection for tablets and mobile
+  const isTouchDevice = () => {
+    return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet/i.test(navigator.userAgent) || 
+           'ontouchstart' in window || 
+           navigator.maxTouchPoints > 0;
+  };
+
   // Handle autoplay state - don't reset it automatically
   useEffect(() => {
     if (currentLesson && autoplayEnabled) {
@@ -345,17 +352,16 @@ export default function CourseViewer() {
       if (!isCurrentlyFullscreen) {
         console.log('Entering fullscreen...')
         
-        // Detect mobile devices
-        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet/i.test(navigator.userAgent) || 
-                         window.innerWidth <= 768 || 
-                         'ontouchstart' in window || 
-                         navigator.maxTouchPoints > 0;
+        // Enhanced mobile/tablet detection
+        const isMobileOrTablet = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet/i.test(navigator.userAgent) || 
+                                'ontouchstart' in window || 
+                                navigator.maxTouchPoints > 0;
         
         // Choose the best element for fullscreen
         let fullscreenElement = videoContainer || iframe;
         
-        // On mobile, prefer iframe for better YouTube integration
-        if (isMobile && iframe) {
+        // On mobile/tablet, prefer iframe for better YouTube integration
+        if (isMobileOrTablet && iframe) {
           fullscreenElement = iframe;
         }
         
@@ -1602,7 +1608,7 @@ export default function CourseViewer() {
                       </div>
 
 
-                      {/* Controls hint when hidden in fullscreen - Mobile Optimized */}
+                      {/* Controls hint when hidden in fullscreen - Touch Device Optimized */}
                       {isFullscreen && !showControls && (
                         <div 
                           className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-3 rounded-lg text-sm opacity-90 z-20 animate-fade-in cursor-pointer"
@@ -1610,20 +1616,30 @@ export default function CourseViewer() {
                           onTouchStart={() => showControlsTemporarily()}
                         >
                           <div className="text-center">
-                            <div className="block md:hidden">Tap anywhere to show controls</div>
-                            <div className="hidden md:block">Move mouse or press any key to show controls</div>
-                            <div className="text-xs mt-1 opacity-80">
-                              <div>Speed: {playbackSpeed}x | Tap screen for controls</div>
-                              <div className="hidden md:block">←→ 10s | J/L 10s | K/Space play/pause | F fullscreen</div>
-                            </div>
+                            {isTouchDevice() ? (
+                              <>
+                                <div>Tap anywhere to show controls</div>
+                                <div className="text-xs mt-1 opacity-80">
+                                  <div>Speed: {playbackSpeed}x | Tap screen for controls</div>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div>Move mouse or press any key to show controls</div>
+                                <div className="text-xs mt-1 opacity-80">
+                                  <div>Speed: {playbackSpeed}x | +/- to adjust | 1 to reset</div>
+                                  <div>←→ 10s | J/L 10s | K/Space play/pause | F fullscreen</div>
+                                </div>
+                              </>
+                            )}
                           </div>
                         </div>
                       )}
 
-                      {/* Mobile Fullscreen Tap Area for Controls */}
-                      {isFullscreen && (
+                      {/* Touch Device Fullscreen Tap Area for Controls */}
+                      {isFullscreen && isTouchDevice() && (
                         <div 
-                          className="absolute inset-0 z-10 md:hidden"
+                          className="absolute inset-0 z-10"
                           onTouchStart={(e) => {
                             // Only trigger on direct taps, not on control elements
                             const target = e.target as HTMLElement
@@ -1654,7 +1670,7 @@ export default function CourseViewer() {
                               {duration === 0 && <span className="text-yellow-400 ml-2">(Loading...)</span>}
                             </div>
                             <div 
-                              className="relative w-full h-4 md:h-2 bg-white/30 rounded-full cursor-pointer group hover:h-5 md:hover:h-3 transition-all duration-200"
+                              className={`relative w-full ${isTouchDevice() ? 'h-4 hover:h-5' : 'h-2 hover:h-3'} bg-white/30 rounded-full cursor-pointer group transition-all duration-200`}
                               style={{ 
                                 touchAction: 'pan-y pinch-zoom', 
                                 pointerEvents: 'auto',
@@ -1780,9 +1796,9 @@ export default function CourseViewer() {
                                   pointerEvents: 'none'
                                 }}
                               />
-                              {/* Scrubber handle - Always visible on mobile */}
+                              {/* Scrubber handle - Always visible on touch devices */}
                               <div 
-                                className="absolute top-1/2 transform -translate-y-1/2 w-5 h-5 md:w-4 md:h-4 bg-red-600 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
+                                className={`absolute top-1/2 transform -translate-y-1/2 ${isTouchDevice() ? 'w-5 h-5 opacity-100' : 'w-4 h-4 opacity-0 group-hover:opacity-100'} bg-red-600 rounded-full transition-opacity duration-200 shadow-lg`}
                                 style={{ 
                                   left: duration > 0 ? `${(currentTime / duration) * 100}%` : '0%', 
                                   marginLeft: '-10px',
@@ -1796,7 +1812,7 @@ export default function CourseViewer() {
                             {/* Left controls - Skip backward */}
                             <div className="flex items-center gap-2">
                               <button
-                                className="p-3 md:p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all duration-200 hover:scale-110 touch-manipulation"
+                                className={`${isTouchDevice() ? 'p-3' : 'p-2'} rounded-full bg-black/50 hover:bg-black/70 text-white transition-all duration-200 hover:scale-110 touch-manipulation`}
                                 style={{
                                   minWidth: '48px',
                                   minHeight: '48px'
@@ -1820,7 +1836,7 @@ export default function CourseViewer() {
                             {/* Center controls - Play/Pause */}
                             <div className="flex items-center gap-4">
                               <button
-                                className="p-4 md:p-3 rounded-full bg-red-600 hover:bg-red-700 text-white transition-all duration-200 touch-manipulation"
+                                className={`${isTouchDevice() ? 'p-4' : 'p-3'} rounded-full bg-red-600 hover:bg-red-700 text-white transition-all duration-200 touch-manipulation`}
                                 onClick={togglePlayPause}
                                 title={isPlaying ? "Pause" : "Play"}
                                 style={{
@@ -1836,7 +1852,7 @@ export default function CourseViewer() {
                             <div className="flex items-center gap-2">
                               <span className="text-white text-sm">+10s</span>
                               <button
-                                className="p-3 md:p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all duration-200 hover:scale-110 touch-manipulation"
+                                className={`${isTouchDevice() ? 'p-3' : 'p-2'} rounded-full bg-black/50 hover:bg-black/70 text-white transition-all duration-200 hover:scale-110 touch-manipulation`}
                                 style={{
                                   minWidth: '48px',
                                   minHeight: '48px'
