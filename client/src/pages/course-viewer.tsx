@@ -1522,23 +1522,30 @@ export default function CourseViewer() {
                       onMouseLeave={() => {
                         // No action needed for mouse leave
                       }}
-                      onClick={() => {
+                      onClick={(e) => {
+                        console.log('Video container clicked')
                         // Always show controls on click
                         showControlsTemporarily()
                       }}
                       onTouchStart={(e) => {
                         console.log('Video container touch start', { isFullscreen, isTouchDevice: isTouchDevice() })
-                        // Show controls on touch start
-                        showControlsTemporarily()
-                      }}
-                      onTouchMove={(e) => {
-                        // Show controls on touch move
-                        showControlsTemporarily()
+                        // Show controls on touch start - especially important in fullscreen
+                        if (isFullscreen && isTouchDevice()) {
+                          e.preventDefault()
+                          showControlsTemporarily()
+                        } else {
+                          showControlsTemporarily()
+                        }
                       }}
                       onTouchEnd={(e) => {
                         console.log('Video container touch end', { isFullscreen, showControls })
-                        // Show controls on touch end
-                        showControlsTemporarily()
+                        // Show controls on touch end - especially important in fullscreen
+                        if (isFullscreen && isTouchDevice()) {
+                          e.preventDefault()
+                          showControlsTemporarily()
+                        } else {
+                          showControlsTemporarily()
+                        }
                       }}
                     >
                       {/* Loading indicator */}
@@ -1664,31 +1671,29 @@ export default function CourseViewer() {
                         </button>
                       )}
 
-                      {/* Touch Device Fullscreen Tap Area for Controls */}
+                      {/* Universal Fullscreen Touch Area - Tap Anywhere to Show Controls */}
                       {isFullscreen && isTouchDevice() && (
                         <div 
-                          className="absolute inset-0 z-20"
+                          className="absolute inset-0 z-5"
                           onTouchStart={(e) => {
-                            console.log('Touch detected in fullscreen')
-                            // Only trigger on direct taps, not on control elements
-                            const target = e.target as HTMLElement
-                            if (!target.closest('.video-controls') && !target.closest('button')) {
-                              console.log('Showing controls from touch')
-                              showControlsTemporarily()
-                            }
+                            console.log('Fullscreen touch detected - showing controls')
+                            e.preventDefault()
+                            showControlsTemporarily()
                           }}
                           onClick={(e) => {
-                            console.log('Click detected in fullscreen')
-                            // Only trigger on direct clicks, not on control elements
-                            const target = e.target as HTMLElement
-                            if (!target.closest('.video-controls') && !target.closest('button')) {
-                              console.log('Showing controls from click')
-                              showControlsTemporarily()
-                            }
+                            console.log('Fullscreen click detected - showing controls')
+                            e.preventDefault()
+                            showControlsTemporarily()
+                          }}
+                          onTouchEnd={(e) => {
+                            console.log('Fullscreen touch end - showing controls')
+                            e.preventDefault()
+                            showControlsTemporarily()
                           }}
                           style={{ 
-                            pointerEvents: showControls ? 'none' : 'auto',
-                            backgroundColor: 'rgba(255,0,0,0.1)' // Temporary debug overlay
+                            pointerEvents: 'auto',
+                            backgroundColor: 'transparent',
+                            touchAction: 'manipulation'
                           }}
                         />
                       )}
