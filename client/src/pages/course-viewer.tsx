@@ -305,6 +305,8 @@ export default function CourseViewer() {
 
   // Controls visibility management
   const showControlsTemporarily = () => {
+    console.log('showControlsTemporarily called', { isFullscreen, currentShowControls: showControls })
+    
     // Clear existing timer
     if (controlsTimer) {
       clearTimeout(controlsTimer)
@@ -312,9 +314,11 @@ export default function CourseViewer() {
     
     // Always show controls when user interacts
     setShowControls(true)
+    console.log('Controls set to true')
     
     // Hide controls after 10 seconds in both fullscreen and normal view
     const timer = setTimeout(() => {
+      console.log('Hiding controls after timeout')
       setShowControls(false)
     }, 10000) // Changed to 10 seconds
     setControlsTimer(timer)
@@ -1522,15 +1526,17 @@ export default function CourseViewer() {
                         // Always show controls on click
                         showControlsTemporarily()
                       }}
-                      onTouchStart={() => {
+                      onTouchStart={(e) => {
+                        console.log('Video container touch start', { isFullscreen, isTouchDevice: isTouchDevice() })
                         // Show controls on touch start
                         showControlsTemporarily()
                       }}
-                      onTouchMove={() => {
+                      onTouchMove={(e) => {
                         // Show controls on touch move
                         showControlsTemporarily()
                       }}
-                      onTouchEnd={() => {
+                      onTouchEnd={(e) => {
+                        console.log('Video container touch end', { isFullscreen, showControls })
                         // Show controls on touch end
                         showControlsTemporarily()
                       }}
@@ -1611,7 +1617,7 @@ export default function CourseViewer() {
                       {/* Controls hint when hidden in fullscreen - Touch Device Optimized */}
                       {isFullscreen && !showControls && (
                         <div 
-                          className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-3 rounded-lg text-sm opacity-90 z-20 animate-fade-in cursor-pointer"
+                          className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-3 rounded-lg text-sm opacity-90 z-40 animate-fade-in cursor-pointer"
                           onClick={() => showControlsTemporarily()}
                           onTouchStart={() => showControlsTemporarily()}
                         >
@@ -1636,25 +1642,54 @@ export default function CourseViewer() {
                         </div>
                       )}
 
+                      {/* Emergency Fullscreen Controls Button for Touch Devices */}
+                      {isFullscreen && isTouchDevice() && (
+                        <button
+                          className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white p-3 rounded-full z-50 shadow-lg"
+                          onClick={() => {
+                            console.log('Emergency button clicked')
+                            showControlsTemporarily()
+                          }}
+                          onTouchStart={(e) => {
+                            e.stopPropagation()
+                            console.log('Emergency button touched')
+                            showControlsTemporarily()
+                          }}
+                          style={{
+                            minWidth: '56px',
+                            minHeight: '56px'
+                          }}
+                        >
+                          <Play className="h-6 w-6" />
+                        </button>
+                      )}
+
                       {/* Touch Device Fullscreen Tap Area for Controls */}
                       {isFullscreen && isTouchDevice() && (
                         <div 
-                          className="absolute inset-0 z-10"
+                          className="absolute inset-0 z-20"
                           onTouchStart={(e) => {
+                            console.log('Touch detected in fullscreen')
                             // Only trigger on direct taps, not on control elements
                             const target = e.target as HTMLElement
                             if (!target.closest('.video-controls') && !target.closest('button')) {
+                              console.log('Showing controls from touch')
                               showControlsTemporarily()
                             }
                           }}
                           onClick={(e) => {
+                            console.log('Click detected in fullscreen')
                             // Only trigger on direct clicks, not on control elements
                             const target = e.target as HTMLElement
                             if (!target.closest('.video-controls') && !target.closest('button')) {
+                              console.log('Showing controls from click')
                               showControlsTemporarily()
                             }
                           }}
-                          style={{ pointerEvents: showControls ? 'none' : 'auto' }}
+                          style={{ 
+                            pointerEvents: showControls ? 'none' : 'auto',
+                            backgroundColor: 'rgba(255,0,0,0.1)' // Temporary debug overlay
+                          }}
                         />
                       )}
 
