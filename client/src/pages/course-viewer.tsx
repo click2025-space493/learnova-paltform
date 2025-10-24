@@ -1602,17 +1602,44 @@ export default function CourseViewer() {
                       </div>
 
 
-                      {/* Controls hint when hidden in fullscreen */}
+                      {/* Controls hint when hidden in fullscreen - Mobile Optimized */}
                       {isFullscreen && !showControls && (
-                        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded text-sm opacity-70 z-20 animate-fade-in">
+                        <div 
+                          className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-3 rounded-lg text-sm opacity-90 z-20 animate-fade-in cursor-pointer"
+                          onClick={() => showControlsTemporarily()}
+                          onTouchStart={() => showControlsTemporarily()}
+                        >
                           <div className="text-center">
-                            <div>Move mouse or press any key to show controls</div>
+                            <div className="block md:hidden">Tap anywhere to show controls</div>
+                            <div className="hidden md:block">Move mouse or press any key to show controls</div>
                             <div className="text-xs mt-1 opacity-80">
-                              <div>Speed: {playbackSpeed}x | +/- to adjust | 1 to reset</div>
-                              <div>←→ 10s | J/L 10s | K/Space play/pause | F fullscreen</div>
+                              <div>Speed: {playbackSpeed}x | Tap screen for controls</div>
+                              <div className="hidden md:block">←→ 10s | J/L 10s | K/Space play/pause | F fullscreen</div>
                             </div>
                           </div>
                         </div>
+                      )}
+
+                      {/* Mobile Fullscreen Tap Area for Controls */}
+                      {isFullscreen && (
+                        <div 
+                          className="absolute inset-0 z-10 md:hidden"
+                          onTouchStart={(e) => {
+                            // Only trigger on direct taps, not on control elements
+                            const target = e.target as HTMLElement
+                            if (!target.closest('.video-controls') && !target.closest('button')) {
+                              showControlsTemporarily()
+                            }
+                          }}
+                          onClick={(e) => {
+                            // Only trigger on direct clicks, not on control elements
+                            const target = e.target as HTMLElement
+                            if (!target.closest('.video-controls') && !target.closest('button')) {
+                              showControlsTemporarily()
+                            }
+                          }}
+                          style={{ pointerEvents: showControls ? 'none' : 'auto' }}
+                        />
                       )}
 
                       {/* Custom Video Controls */}
@@ -1627,8 +1654,12 @@ export default function CourseViewer() {
                               {duration === 0 && <span className="text-yellow-400 ml-2">(Loading...)</span>}
                             </div>
                             <div 
-                              className="relative w-full h-2 bg-white/30 rounded-full cursor-pointer group hover:h-3 transition-all duration-200"
-                              style={{ touchAction: 'none', pointerEvents: 'auto' }}
+                              className="relative w-full h-4 md:h-2 bg-white/30 rounded-full cursor-pointer group hover:h-5 md:hover:h-3 transition-all duration-200"
+                              style={{ 
+                                touchAction: 'pan-y pinch-zoom', 
+                                pointerEvents: 'auto',
+                                minHeight: '16px' // Ensure minimum touch target
+                              }}
                               onClick={(e) => {
                                 e.preventDefault()
                                 e.stopPropagation()
@@ -1693,14 +1724,19 @@ export default function CourseViewer() {
                                 document.addEventListener('mouseup', handleMouseUp)
                               }}
                               onTouchStart={(e) => {
-                                e.preventDefault()
+                                // Don't prevent default to allow better touch handling
                                 if (!e.currentTarget || duration <= 0) return
                                 
                                 setIsDragging(true)
                                 const progressBar = e.currentTarget
-                                const touch = e.touches[0]
+                                const startTouch = e.touches[0]
+                                let lastValidTime = currentTime
+                                
+                                // Show controls immediately on touch
+                                showControlsTemporarily()
                                 
                                 const handleTouchMove = (moveEvent: TouchEvent) => {
+                                  moveEvent.preventDefault() // Prevent scrolling during drag
                                   if (duration > 0 && progressBar && moveEvent.touches[0]) {
                                     try {
                                       const rect = progressBar.getBoundingClientRect()
@@ -1709,6 +1745,10 @@ export default function CourseViewer() {
                                         const percentage = Math.max(0, Math.min(1, moveX / rect.width))
                                         const newTime = percentage * duration
                                         setCurrentTime(newTime)
+                                        lastValidTime = newTime
+                                        
+                                        // Show seek feedback on mobile
+                                        showSeekFeedback(formatTime(newTime))
                                       }
                                     } catch (error) {
                                       console.log('Error in touch move:', error)
@@ -1717,17 +1757,19 @@ export default function CourseViewer() {
                                 }
                                 
                                 const handleTouchEnd = (endEvent: TouchEvent) => {
-                                  // Use the current time that was set during dragging, not touch position
                                   if (duration > 0) {
-                                    seekToTime(currentTime)
+                                    seekToTime(lastValidTime)
                                   }
                                   setIsDragging(false)
                                   document.removeEventListener('touchmove', handleTouchMove)
                                   document.removeEventListener('touchend', handleTouchEnd)
+                                  
+                                  // Keep controls visible after seeking
+                                  showControlsTemporarily()
                                 }
                                 
                                 document.addEventListener('touchmove', handleTouchMove, { passive: false })
-                                document.addEventListener('touchend', handleTouchEnd)
+                                document.addEventListener('touchend', handleTouchEnd, { passive: true })
                               }}
                             >
                               {/* Progress fill */}
@@ -1738,12 +1780,12 @@ export default function CourseViewer() {
                                   pointerEvents: 'none'
                                 }}
                               />
-                              {/* Scrubber handle */}
+                              {/* Scrubber handle - Always visible on mobile */}
                               <div 
-                                className="absolute top-1/2 transform -translate-y-1/2 w-4 h-4 bg-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
+                                className="absolute top-1/2 transform -translate-y-1/2 w-5 h-5 md:w-4 md:h-4 bg-red-600 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
                                 style={{ 
                                   left: duration > 0 ? `${(currentTime / duration) * 100}%` : '0%', 
-                                  marginLeft: '-8px',
+                                  marginLeft: '-10px',
                                   pointerEvents: 'none'
                                 }}
                               />
@@ -1754,7 +1796,11 @@ export default function CourseViewer() {
                             {/* Left controls - Skip backward */}
                             <div className="flex items-center gap-2">
                               <button
-                                className="p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all duration-200 hover:scale-110"
+                                className="p-3 md:p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all duration-200 hover:scale-110 touch-manipulation"
+                                style={{
+                                  minWidth: '48px',
+                                  minHeight: '48px'
+                                }}
                                 onClick={() => {
                                   // Skip backward 10 seconds using seekToTime
                                   const newTime = Math.max(0, currentTime - 10)
@@ -1774,9 +1820,13 @@ export default function CourseViewer() {
                             {/* Center controls - Play/Pause */}
                             <div className="flex items-center gap-4">
                               <button
-                                className="p-3 rounded-full bg-red-600 hover:bg-red-700 text-white transition-all duration-200"
+                                className="p-4 md:p-3 rounded-full bg-red-600 hover:bg-red-700 text-white transition-all duration-200 touch-manipulation"
                                 onClick={togglePlayPause}
                                 title={isPlaying ? "Pause" : "Play"}
+                                style={{
+                                  minWidth: '56px',
+                                  minHeight: '56px'
+                                }}
                               >
                                 {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
                               </button>
@@ -1786,7 +1836,11 @@ export default function CourseViewer() {
                             <div className="flex items-center gap-2">
                               <span className="text-white text-sm">+10s</span>
                               <button
-                                className="p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all duration-200 hover:scale-110"
+                                className="p-3 md:p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all duration-200 hover:scale-110 touch-manipulation"
+                                style={{
+                                  minWidth: '48px',
+                                  minHeight: '48px'
+                                }}
                                 onClick={() => {
                                   // Skip forward 10 seconds using seekToTime
                                   const newTime = Math.min(duration || currentTime + 10, currentTime + 10)
