@@ -117,6 +117,17 @@ export default function CourseViewer() {
         (document as any).msFullscreenElement
       )
       setIsFullscreen(isCurrentlyFullscreen)
+      
+      // When entering fullscreen on touch devices, show controls and keep them visible (like normal mode)
+      if (isCurrentlyFullscreen && isTouchDevice()) {
+        console.log('Entered fullscreen on touch device - showing controls permanently')
+        setShowControls(true)
+        // Clear any existing timer to prevent hiding
+        if (controlsTimer) {
+          clearTimeout(controlsTimer)
+          setControlsTimer(null)
+        }
+      }
     }
 
     // Add event listeners for all browsers
@@ -316,11 +327,17 @@ export default function CourseViewer() {
     setShowControls(true)
     console.log('Controls set to true')
     
-    // Hide controls after 10 seconds in both fullscreen and normal view
+    // In fullscreen on touch devices, behave like normal mode - never hide controls
+    if (isFullscreen && isTouchDevice()) {
+      console.log('Fullscreen touch device - keeping controls visible like normal mode')
+      return // Don't set any timer, keep controls visible permanently
+    }
+    
+    // Only hide controls on desktop or normal mode
     const timer = setTimeout(() => {
       console.log('Hiding controls after timeout')
       setShowControls(false)
-    }, 10000) // Changed to 10 seconds
+    }, 10000)
     setControlsTimer(timer)
   }
 
