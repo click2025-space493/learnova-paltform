@@ -1666,54 +1666,9 @@ export default function CourseViewer() {
                         </div>
                       )}
 
-                      {/* Emergency Fullscreen Controls Button for Touch Devices */}
-                      {isFullscreen && isTouchDevice() && (
-                        <button
-                          className="fixed top-4 right-4 bg-red-600 hover:bg-red-700 text-white p-3 rounded-full z-[10000] shadow-lg"
-                          onClick={() => {
-                            console.log('Emergency button clicked')
-                            showControlsTemporarily()
-                          }}
-                          onTouchStart={(e) => {
-                            e.stopPropagation()
-                            console.log('Emergency button touched')
-                            showControlsTemporarily()
-                          }}
-                          style={{
-                            minWidth: '56px',
-                            minHeight: '56px'
-                          }}
-                        >
-                          <Play className="h-6 w-6" />
-                        </button>
-                      )}
+                      {/* Emergency button removed - controls are always visible now */}
 
-                      {/* Universal Fullscreen Touch Area - Tap Anywhere to Show Controls */}
-                      {isFullscreen && isTouchDevice() && (
-                        <div 
-                          className="fixed inset-0 z-[9998]"
-                          onTouchStart={(e) => {
-                            console.log('Fullscreen touch detected - showing controls')
-                            e.preventDefault()
-                            showControlsTemporarily()
-                          }}
-                          onClick={(e) => {
-                            console.log('Fullscreen click detected - showing controls')
-                            e.preventDefault()
-                            showControlsTemporarily()
-                          }}
-                          onTouchEnd={(e) => {
-                            console.log('Fullscreen touch end - showing controls')
-                            e.preventDefault()
-                            showControlsTemporarily()
-                          }}
-                          style={{ 
-                            pointerEvents: 'auto',
-                            backgroundColor: 'transparent',
-                            touchAction: 'manipulation'
-                          }}
-                        />
-                      )}
+                      {/* Touch detection layer removed - controls are always visible now, no need for tap detection */}
 
                       {/* Custom Video Controls - Always show in fullscreen on touch devices */}
                       {currentLesson && (showControls || (isFullscreen && isTouchDevice())) && (
