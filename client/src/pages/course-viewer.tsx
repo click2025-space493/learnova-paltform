@@ -1698,9 +1698,9 @@ export default function CourseViewer() {
                         />
                       )}
 
-                      {/* Custom Video Controls */}
-                      {currentLesson && showControls && (
-                        <div className={`video-controls ${isFullscreen ? 'fixed' : 'absolute'} bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 ${isFullscreen ? 'z-[9999]' : 'z-30'} transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+                      {/* Custom Video Controls - Always show in fullscreen on touch devices */}
+                      {currentLesson && (showControls || (isFullscreen && isTouchDevice())) && (
+                        <div className={`video-controls ${isFullscreen ? 'fixed' : 'absolute'} bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 ${isFullscreen ? 'z-[9999]' : 'z-30'} transition-opacity duration-300 ${(showControls || (isFullscreen && isTouchDevice())) ? 'opacity-100' : 'opacity-0'}`}>
                           {/* Progress Bar */}
                           <div className="mb-3">
                             <div className="flex items-center gap-2 text-white text-xs mb-1">
