@@ -1624,7 +1624,7 @@ export default function CourseViewer() {
                       {/* Controls hint when hidden in fullscreen - Touch Device Optimized */}
                       {isFullscreen && !showControls && (
                         <div 
-                          className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-3 rounded-lg text-sm opacity-90 z-40 animate-fade-in cursor-pointer"
+                          className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-3 rounded-lg text-sm opacity-90 z-[9999] animate-fade-in cursor-pointer"
                           onClick={() => showControlsTemporarily()}
                           onTouchStart={() => showControlsTemporarily()}
                         >
@@ -1652,7 +1652,7 @@ export default function CourseViewer() {
                       {/* Emergency Fullscreen Controls Button for Touch Devices */}
                       {isFullscreen && isTouchDevice() && (
                         <button
-                          className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white p-3 rounded-full z-50 shadow-lg"
+                          className="fixed top-4 right-4 bg-red-600 hover:bg-red-700 text-white p-3 rounded-full z-[10000] shadow-lg"
                           onClick={() => {
                             console.log('Emergency button clicked')
                             showControlsTemporarily()
@@ -1674,7 +1674,7 @@ export default function CourseViewer() {
                       {/* Universal Fullscreen Touch Area - Tap Anywhere to Show Controls */}
                       {isFullscreen && isTouchDevice() && (
                         <div 
-                          className="absolute inset-0 z-5"
+                          className="fixed inset-0 z-[9998]"
                           onTouchStart={(e) => {
                             console.log('Fullscreen touch detected - showing controls')
                             e.preventDefault()
@@ -1700,7 +1700,7 @@ export default function CourseViewer() {
 
                       {/* Custom Video Controls */}
                       {currentLesson && showControls && (
-                        <div className={`video-controls absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 z-30 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+                        <div className={`video-controls ${isFullscreen ? 'fixed' : 'absolute'} bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 ${isFullscreen ? 'z-[9999]' : 'z-30'} transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
                           {/* Progress Bar */}
                           <div className="mb-3">
                             <div className="flex items-center gap-2 text-white text-xs mb-1">
