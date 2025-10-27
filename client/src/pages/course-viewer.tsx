@@ -1546,23 +1546,23 @@ export default function CourseViewer() {
                       }}
                       onTouchStart={(e) => {
                         console.log('Video container touch start', { isFullscreen, isTouchDevice: isTouchDevice() })
-                        // Show controls on touch start - especially important in fullscreen
+                        // In fullscreen on touch devices, don't handle touches - let controls handle them directly
                         if (isFullscreen && isTouchDevice()) {
-                          e.preventDefault()
-                          showControlsTemporarily()
-                        } else {
-                          showControlsTemporarily()
+                          // Don't preventDefault() - let touches pass through to controls
+                          return
                         }
+                        // Only handle touches in normal mode
+                        showControlsTemporarily()
                       }}
                       onTouchEnd={(e) => {
                         console.log('Video container touch end', { isFullscreen, showControls })
-                        // Show controls on touch end - especially important in fullscreen
+                        // In fullscreen on touch devices, don't handle touches - let controls handle them directly
                         if (isFullscreen && isTouchDevice()) {
-                          e.preventDefault()
-                          showControlsTemporarily()
-                        } else {
-                          showControlsTemporarily()
+                          // Don't preventDefault() - let touches pass through to controls
+                          return
                         }
+                        // Only handle touches in normal mode
+                        showControlsTemporarily()
                       }}
                     >
                       {/* Loading indicator */}
