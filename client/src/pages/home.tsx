@@ -264,6 +264,62 @@ export default function Home() {
             </div>
           )}
         </div>
+
+        {/* Analytics & Impact Section */}
+        <div className="mt-32 relative overflow-hidden rounded-[4rem] bg-white/5 border border-white/10 p-12 lg:p-20">
+          <div className="absolute inset-0 bg-cyber-grid opacity-10 pointer-events-none" />
+          <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[100px] pointer-events-none" />
+
+          <div className="relative z-10 grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <Badge className="bg-cyan-500/10 text-cyan-400 border-none text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full mb-6">
+                NETWORK METRICS // LIVE
+              </Badge>
+              <h2 className="text-4xl lg:text-6xl font-black text-white tracking-tighter uppercase leading-tight mb-8">
+                QUANTUM <br />
+                <span className="text-glow-blue text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 italic">IMPACT.</span>
+              </h2>
+              <p className="text-xl text-blue-100/40 font-medium leading-relaxed max-w-xl">
+                The Learnova ecosystem is expanding at light speed. Our synchronized neural network connects creators and learners across the global grid.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-6">
+              <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-2xl neon-border-blue group hover:bg-white/10 transition-all">
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center mb-6 shadow-[0_0_15px_rgba(59,130,246,0.3)]">
+                  <Users className="h-6 w-6 text-blue-400" />
+                </div>
+                <p className="text-4xl font-black text-white tracking-tighter mb-1">250+</p>
+                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">ACTIVE NODES</p>
+              </div>
+
+              <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-2xl neon-border-purple group hover:bg-white/10 transition-all">
+                <div className="w-12 h-12 rounded-2xl bg-purple-500/20 flex items-center justify-center mb-6 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+                  <Clock className="h-6 w-6 text-purple-400" />
+                </div>
+                <p className="text-4xl font-black text-white tracking-tighter mb-1">869+</p>
+                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">WATCH HOURS</p>
+              </div>
+
+              <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-2xl neon-border-cyan group hover:bg-white/10 transition-all">
+                <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 flex items-center justify-center mb-6 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                  <TrendingUp className="h-6 w-6 text-cyan-400" />
+                </div>
+                <p className="text-4xl font-black text-white tracking-tighter mb-1">98%</p>
+                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">SYNC RATE</p>
+              </div>
+
+              <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-2xl neon-border-pink group hover:bg-white/10 transition-all">
+                <div className="w-12 h-12 rounded-2xl bg-pink-500/20 flex items-center justify-center mb-6 shadow-[0_0_15px_rgba(236,72,153,0.3)]">
+                  <Star className="h-6 w-6 text-pink-400" />
+                </div>
+                <p className="text-4xl font-black text-white tracking-tighter mb-1">15+</p>
+                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">CORE ARCHITECTS</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </main>
 
       <Footer />
