@@ -26,12 +26,18 @@ export default function CourseCard({ course }: CourseCardProps) {
     if (course.title === "Digital Control" || course.title === "Motion Control") {
       return "Eng Ahmed Samir";
     }
+    if (course.title === "Mechanical vibration") {
+      return "Eng Salah Nour";
+    }
     return "Eng Mohammed Essa";
   };
 
   const getInstructorInitials = () => {
     if (course.title === "Digital Control" || course.title === "Motion Control") {
       return "AS";
+    }
+    if (course.title === "Mechanical vibration") {
+      return "SN";
     }
     return "ME";
   };

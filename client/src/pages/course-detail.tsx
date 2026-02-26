@@ -399,13 +399,17 @@ export default function CourseDetail() {
                   <Avatar className="h-20 w-20 rounded-[1.5rem] border-2 border-white/10 shadow-2xl p-0.5 bg-gradient-to-br from-blue-500 to-purple-500">
                     <AvatarImage src={course?.teacher?.avatar_url || "/placeholder-avatar.jpg"} className="rounded-[1.3rem] object-cover" />
                     <AvatarFallback className="bg-transparent text-white text-2xl font-black">
-                      {course?.teacher?.name?.[0] || 'T'}
+                      {course?.title?.toLowerCase().includes("mechanical vibration")
+                        ? "SN"
+                        : (course?.teacher?.name?.[0] || 'T')}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
                     <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-1">LEAD ARCHITECT</p>
                     <h4 className="text-xl font-black text-white truncate uppercase tracking-tight" data-testid="text-instructor-name">
-                      {course?.teacher?.name || 'UNKNOWN ENTITY'}
+                      {course?.title?.toLowerCase().includes("mechanical vibration")
+                        ? "ENG SALAH NOUR"
+                        : (course?.teacher?.name || 'UNKNOWN ENTITY')}
                     </h4>
                     <Link href={`/instructor/${course?.teacher?.id}`} className="inline-block mt-3 text-[10px] font-black text-blue-400 uppercase tracking-widest hover:text-white transition-colors">
                       VERIFY PROFILE // ACCESS →

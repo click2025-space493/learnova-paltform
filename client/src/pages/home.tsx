@@ -160,7 +160,7 @@ export default function Home() {
         </div>
 
         {/* Latest Content Section */}
-        <div className="space-y-12">
+        <div className="space-y-12 mb-32">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-white/5 pb-10">
             <div>
               <h2 className="text-4xl lg:text-5xl font-black text-white tracking-tighter uppercase leading-tight mb-2">
@@ -184,8 +184,6 @@ export default function Home() {
           ) : courses.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
               {courses.map((course: any) => {
-                const totalLessons = course.chapters?.reduce((total: number, chapter: any) =>
-                  total + (chapter.lessons?.length || 0), 0) || 0;
                 const totalDuration = course.chapters?.reduce((total: number, chapter: any) =>
                   total + (chapter.lessons?.reduce((chapterTotal: number, lesson: any) =>
                     chapterTotal + (lesson.video_duration || 0), 0) || 0), 0) || 0;
@@ -235,7 +233,11 @@ export default function Home() {
                             </div>
                             <div>
                               <p className="text-[8px] font-black text-white/30 uppercase tracking-widest">ARCHITECT</p>
-                              <p className="text-[10px] font-black text-white uppercase tracking-tighter">{course.users?.name || 'EDUCATOR'}</p>
+                              <p className="text-[10px] font-black text-white uppercase tracking-tighter">
+                                {course.title?.toLowerCase().includes("mechanical vibration")
+                                  ? "ENG SALAH NOUR"
+                                  : (course.users?.name || 'EDUCATOR')}
+                              </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
@@ -265,61 +267,66 @@ export default function Home() {
           )}
         </div>
 
-        {/* Analytics & Impact Section */}
-        <div className="mt-32 relative overflow-hidden rounded-[4rem] bg-white/5 border border-white/10 p-12 lg:p-20">
-          <div className="absolute inset-0 bg-cyber-grid opacity-10 pointer-events-none" />
-          <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[100px] pointer-events-none" />
+        {/* Neural Network Analytics Section */}
+        <section className="mb-32 relative overflow-hidden rounded-[4rem] bg-white/5 border border-white/10 p-12 lg:p-24 group">
+          <div className="absolute inset-0 bg-cyber-grid opacity-20 pointer-events-none group-hover:opacity-30 transition-opacity" />
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none animate-pulse" />
+          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none animate-pulse" />
 
-          <div className="relative z-10 grid lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <Badge className="bg-cyan-500/10 text-cyan-400 border-none text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full mb-6">
-                NETWORK METRICS // LIVE
+          <div className="relative z-10">
+            <div className="text-center mb-20 space-y-4">
+              <Badge className="bg-blue-500/10 text-blue-400 border-none text-[10px] font-black uppercase tracking-[0.3em] px-6 py-2 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.2)]">
+                GLOBAL IMPACT // REAL-TIME DATA
               </Badge>
-              <h2 className="text-4xl lg:text-6xl font-black text-white tracking-tighter uppercase leading-tight mb-8">
-                QUANTUM <br />
-                <span className="text-glow-blue text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 italic">IMPACT.</span>
+              <h2 className="text-5xl lg:text-7xl font-black text-white tracking-tighter uppercase leading-tight">
+                THE GRID IS <br />
+                <span className="text-glow-blue text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 italic">EXPANDING.</span>
               </h2>
-              <p className="text-xl text-blue-100/40 font-medium leading-relaxed max-w-xl">
-                The Learnova ecosystem is expanding at light speed. Our synchronized neural network connects creators and learners across the global grid.
-              </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
-              <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-2xl neon-border-blue group hover:bg-white/10 transition-all">
-                <div className="w-12 h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center mb-6 shadow-[0_0_15px_rgba(59,130,246,0.3)]">
-                  <Users className="h-6 w-6 text-blue-400" />
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+              <div className="p-10 rounded-[3rem] bg-white/5 border border-white/10 backdrop-blur-3xl neon-border-blue group/card hover:bg-white/10 transition-all text-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+                <div className="w-16 h-16 rounded-2xl bg-blue-500/20 flex items-center justify-center mb-8 mx-auto shadow-[0_0_30px_rgba(59,130,246,0.3)] group-hover/card:scale-110 transition-transform">
+                  <Users className="h-8 w-8 text-blue-400" />
                 </div>
-                <p className="text-4xl font-black text-white tracking-tighter mb-1">250+</p>
-                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">ACTIVE NODES</p>
+                <p className="text-5xl font-black text-white tracking-tighter mb-2 text-glow-blue">250+</p>
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Neural Initiates</p>
+                <p className="mt-4 text-[10px] font-bold text-blue-400 uppercase tracking-widest">More than 250 Students</p>
               </div>
 
-              <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-2xl neon-border-purple group hover:bg-white/10 transition-all">
-                <div className="w-12 h-12 rounded-2xl bg-purple-500/20 flex items-center justify-center mb-6 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
-                  <Clock className="h-6 w-6 text-purple-400" />
+              <div className="p-10 rounded-[3rem] bg-white/5 border border-white/10 backdrop-blur-3xl neon-border-purple group/card hover:bg-white/10 transition-all text-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-purple-500/5 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+                <div className="w-16 h-16 rounded-2xl bg-purple-500/20 flex items-center justify-center mb-8 mx-auto shadow-[0_0_30px_rgba(168,85,247,0.3)] group-hover/card:scale-110 transition-transform">
+                  <Clock className="h-8 w-8 text-purple-400" />
                 </div>
-                <p className="text-4xl font-black text-white tracking-tighter mb-1">869+</p>
-                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">WATCH HOURS</p>
+                <p className="text-5xl font-black text-white tracking-tighter mb-2 text-glow-purple">869+</p>
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Knowledge Hours</p>
+                <p className="mt-4 text-[10px] font-bold text-purple-400 uppercase tracking-widest">More of 869 Hours Watching</p>
               </div>
 
-              <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-2xl neon-border-cyan group hover:bg-white/10 transition-all">
-                <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 flex items-center justify-center mb-6 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
-                  <TrendingUp className="h-6 w-6 text-cyan-400" />
+              <div className="p-10 rounded-[3rem] bg-white/5 border border-white/10 backdrop-blur-3xl neon-border-cyan group/card hover:bg-white/10 transition-all text-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+                <div className="w-16 h-16 rounded-2xl bg-cyan-500/20 flex items-center justify-center mb-8 mx-auto shadow-[0_0_30px_rgba(6,182,212,0.3)] group-hover/card:scale-110 transition-transform">
+                  <TrendingUp className="h-8 w-8 text-cyan-400" />
                 </div>
-                <p className="text-4xl font-black text-white tracking-tighter mb-1">98%</p>
-                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">SYNC RATE</p>
+                <p className="text-5xl font-black text-white tracking-tighter mb-2 text-glow-cyan">98.4%</p>
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Retention Rate</p>
+                <p className="mt-4 text-[10px] font-bold text-cyan-400/60 uppercase">Optimized Efficiency</p>
               </div>
 
-              <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-2xl neon-border-pink group hover:bg-white/10 transition-all">
-                <div className="w-12 h-12 rounded-2xl bg-pink-500/20 flex items-center justify-center mb-6 shadow-[0_0_15px_rgba(236,72,153,0.3)]">
-                  <Star className="h-6 w-6 text-pink-400" />
+              <div className="p-10 rounded-[3rem] bg-white/5 border border-white/10 backdrop-blur-3xl neon-border-pink group/card hover:bg-white/10 transition-all text-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-pink-500/5 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+                <div className="w-16 h-16 rounded-2xl bg-pink-500/20 flex items-center justify-center mb-8 mx-auto shadow-[0_0_30px_rgba(236,72,153,0.3)] group-hover/card:scale-110 transition-transform">
+                  <Star className="h-8 w-8 text-pink-400" />
                 </div>
-                <p className="text-4xl font-black text-white tracking-tighter mb-1">15+</p>
-                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">CORE ARCHITECTS</p>
+                <p className="text-5xl font-black text-white tracking-tighter mb-1 text-glow-pink">4.9/5</p>
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">User Rating</p>
+                <p className="mt-4 text-[10px] font-bold text-pink-400/60 uppercase">Elite Protocol Status</p>
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </main>
 
       <Footer />
