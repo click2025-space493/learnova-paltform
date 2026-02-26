@@ -126,7 +126,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-white/5 mt-24 pt-10 flex flex-col md:flex-row items-center justify-between gap-8">
           <p className="text-xs font-black text-white/20 uppercase tracking-widest" data-testid="footer-copyright">
-            © 2025 Learnova Studio // Neural Network v1.0.4
+            © 2025 Learnova Studio // Neural Network v1.0.4 // Made by Clickers Creations company
           </p>
           <div className="flex gap-10">
             <a href="#" className="text-[10px] font-black text-white/20 hover:text-blue-400 uppercase tracking-[0.2em] transition-colors">Privacy.LOG</a>
