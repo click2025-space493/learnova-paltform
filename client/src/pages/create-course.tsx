@@ -101,132 +101,136 @@ export default function CreateCourse() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#020617] relative overflow-hidden flex flex-col">
       <Navigation />
-      
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Create New Course</h1>
-          <p className="text-muted-foreground">
-            Share your knowledge with students around the world
-          </p>
+
+      {/* Futuristic Background Elements */}
+      <div className="absolute inset-0 bg-cyber-grid opacity-10 pointer-events-none" />
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[120px] pointer-events-none" />
+
+      <main className="flex-1 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative z-10 pt-40 w-full">
+        <div className="mb-16">
+          <Badge className="mb-4 bg-blue-500/10 text-blue-400 border-none text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full">
+            KNOWLEDGE CREATION CONSOLE
+          </Badge>
+          <h1 className="text-4xl lg:text-7xl font-black text-white tracking-tighter uppercase leading-tight">ORGANIZE <span className="text-glow-purple text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 italic">SYLLABUS.</span></h1>
+          <p className="text-blue-100/40 font-medium tracking-tight uppercase text-xs mt-2">Initialize Global Knowledge Stream // Access Level: Educator</p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Course Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              <div>
-                <Label htmlFor="title">Course Title *</Label>
+        <div className="rounded-[3rem] bg-white/5 border border-white/10 backdrop-blur-3xl overflow-hidden shadow-2xl neon-border-blue">
+          <div className="p-10 border-b border-white/10">
+            <h2 className="text-xl font-black text-white tracking-widest uppercase flex items-center gap-4">
+              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+              COURSE PARAMETERS
+            </h2>
+          </div>
+          <div className="p-10 lg:p-12">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
+              <div className="space-y-4">
+                <Label htmlFor="title" className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-2">COURSE DESIGNATION *</Label>
                 <Input
                   id="title"
-                  placeholder="e.g., Complete Web Development Bootcamp"
+                  placeholder="E.G., NEURAL NETWORK ARCHITECTURES..."
                   {...register("title")}
+                  className="h-16 bg-white/5 border-white/10 rounded-2xl text-white font-black text-xs uppercase tracking-widest focus-visible:ring-blue-500/20 placeholder:text-white/10"
                   data-testid="input-course-title"
                 />
                 {errors.title && (
-                  <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
+                  <p className="text-red-400 text-[10px] font-black uppercase tracking-widest ml-2">{errors.title.message}</p>
                 )}
-                <p className="text-sm text-muted-foreground mt-1">
-                  Choose a clear, descriptive title for your course
-                </p>
               </div>
 
-              <div>
-                <Label htmlFor="description">Course Description *</Label>
+              <div className="space-y-4">
+                <Label htmlFor="description" className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-2">STREAM SYNOPSIS *</Label>
                 <Textarea
                   id="description"
-                  placeholder="Describe what students will learn in your course..."
-                  className="min-h-[120px]"
+                  placeholder="TRANSMIT THE CORE LEARNING OBJECTIVES..."
+                  className="min-h-[160px] bg-white/5 border-white/10 rounded-2xl text-white font-black text-xs uppercase tracking-widest focus-visible:ring-blue-500/20 placeholder:text-white/10 p-6"
                   {...register("description")}
                   data-testid="textarea-course-description"
                 />
                 {errors.description && (
-                  <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>
-                )}
-                <p className="text-sm text-muted-foreground mt-1">
-                  Explain what students will gain from taking your course
-                </p>
-              </div>
-
-              <div>
-                <Label htmlFor="category">Category *</Label>
-                <select 
-                  {...register("category")}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  data-testid="select-course-category"
-                >
-                  <option value="">Select a category</option>
-                  <option value="Programming">Programming</option>
-                  <option value="Design">Design</option>
-                  <option value="Business">Business</option>
-                  <option value="Marketing">Marketing</option>
-                  <option value="Data Science">Data Science</option>
-                  <option value="Photography">Photography</option>
-                  <option value="Music">Music</option>
-                  <option value="Other">Other</option>
-                </select>
-                {errors.category && (
-                  <p className="text-red-500 text-sm mt-1">{errors.category.message}</p>
+                  <p className="text-red-400 text-[10px] font-black uppercase tracking-widest ml-2">{errors.description.message}</p>
                 )}
               </div>
 
-              <div>
-                <Label htmlFor="price">Price (USD) *</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  {...register("price")}
-                  data-testid="input-course-price"
-                />
-                {errors.price && (
-                  <p className="text-red-500 text-sm mt-1">{errors.price.message}</p>
-                )}
-                <p className="text-sm text-muted-foreground mt-1">
-                  Set to 0.00 for free courses
-                </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="space-y-4">
+                  <Label htmlFor="category" className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-2">CLASSIFICATION *</Label>
+                  <select
+                    {...register("category")}
+                    className="flex h-16 w-full rounded-2xl border border-white/10 bg-white/5 px-6 py-2 text-xs font-black uppercase tracking-widest text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/20 appearance-none cursor-pointer"
+                    data-testid="select-course-category"
+                  >
+                    <option value="" className="bg-[#0f172a] text-white/20">SELECT SECTOR</option>
+                    <option value="Programming" className="bg-[#0f172a]">Programming</option>
+                    <option value="Design" className="bg-[#0f172a]">Design</option>
+                    <option value="Business" className="bg-[#0f172a]">Business</option>
+                    <option value="Marketing" className="bg-[#0f172a]">Marketing</option>
+                    <option value="Data Science" className="bg-[#0f172a]">Data Science</option>
+                    <option value="Photography" className="bg-[#0f172a]">Photography</option>
+                    <option value="Music" className="bg-[#0f172a]">Music</option>
+                    <option value="Other" className="bg-[#0f172a]">Other</option>
+                  </select>
+                  {errors.category && (
+                    <p className="text-red-400 text-[10px] font-black uppercase tracking-widest ml-2">{errors.category.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-4">
+                  <Label htmlFor="price" className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-2">ACCESS FEE (USD) *</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    {...register("price")}
+                    className="h-16 bg-white/5 border-white/10 rounded-2xl text-white font-black text-xs uppercase tracking-widest focus-visible:ring-blue-500/20 placeholder:text-white/10"
+                    data-testid="input-course-price"
+                  />
+                  {errors.price && (
+                    <p className="text-red-400 text-[10px] font-black uppercase tracking-widest ml-2">{errors.price.message}</p>
+                  )}
+                </div>
               </div>
 
-              <div>
-                <Label htmlFor="coverImage">Cover Image URL (Optional)</Label>
+              <div className="space-y-4">
+                <Label htmlFor="coverImage" className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-2">VISUAL UPLINK (OPTIONAL)</Label>
                 <Input
                   id="coverImage"
-                  placeholder="https://example.com/image.jpg"
+                  placeholder="HTTPS://CDN.LEARNOVA.IO/ASSET.JPG"
                   {...register("coverImage")}
+                  className="h-16 bg-white/5 border-white/10 rounded-2xl text-white font-black text-xs uppercase tracking-widest focus-visible:ring-blue-500/20 placeholder:text-white/10"
                   data-testid="input-course-image"
                 />
                 {errors.coverImage && (
-                  <p className="text-red-500 text-sm mt-1">{errors.coverImage.message}</p>
+                  <p className="text-red-400 text-[10px] font-black uppercase tracking-widest ml-2">{errors.coverImage.message}</p>
                 )}
-                <p className="text-sm text-muted-foreground mt-1">
-                  Add a cover image to make your course more appealing
-                </p>
               </div>
 
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-6 pt-6">
                 <Button
                   type="submit"
                   disabled={createCourseMutation.isPending}
+                  className="h-16 flex-1 rounded-2xl bg-white text-black font-black text-xs uppercase tracking-[0.3em] shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:bg-blue-400 hover:text-white transition-all border-none"
                   data-testid="button-create-course"
                 >
-                  {createCourseMutation.isPending ? "Creating..." : "Create Course"}
+                  {createCourseMutation.isPending ? "INITIALIZING..." : "EXECUTE DEPLOYMENT"}
                 </Button>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   onClick={() => setLocation("/teacher-dashboard")}
+                  className="h-16 px-10 rounded-2xl text-white/40 font-black text-xs uppercase tracking-[0.3em] hover:text-white hover:bg-white/5 transition-all"
                   data-testid="button-cancel-create"
                 >
-                  Cancel
+                  ABORT
                 </Button>
               </div>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </main>
 
       <Footer />

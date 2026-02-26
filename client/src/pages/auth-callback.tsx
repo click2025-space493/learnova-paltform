@@ -9,7 +9,7 @@ export default function AuthCallback() {
     const handleAuthCallback = async () => {
       try {
         const { data, error } = await supabase.auth.getSession()
-        
+
         if (error) {
           console.error('Auth callback error:', error)
           setLocation('/signin?error=auth_failed')
@@ -28,7 +28,7 @@ export default function AuthCallback() {
             // New user from Google OAuth - check if coming from student signup
             const urlParams = new URLSearchParams(window.location.search)
             const signupType = urlParams.get('signup_type')
-            
+
             if (signupType === 'student') {
               // Redirect to username selection for student signup
               setLocation('/username-selection')
@@ -63,11 +63,29 @@ export default function AuthCallback() {
   }, [setLocation])
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">Completing authentication...</p>
+    <div className="min-h-screen bg-[#020617] relative overflow-hidden flex items-center justify-center">
+      {/* Futuristic Background Elements */}
+      <div className="absolute inset-0 bg-cyber-grid opacity-20 pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none animate-pulse" />
+
+      <div className="relative z-10 text-center space-y-8">
+        <div className="relative inline-block">
+          <div className="w-24 h-24 rounded-full border-t-2 border-b-2 border-blue-500 animate-spin" />
+          <div className="absolute inset-0 w-24 h-24 rounded-full border-l-2 border-r-2 border-purple-500 animate-spin [animation-direction:reverse]" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-2 h-2 bg-white rounded-full animate-ping" />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <h2 className="text-xl font-black text-white tracking-[0.5em] uppercase">INITIALIZING SESSION</h2>
+          <div className="flex items-center justify-center gap-2">
+            <div className="h-[1px] w-8 bg-gradient-to-r from-transparent to-blue-500" />
+            <p className="text-[10px] font-black text-blue-400/60 uppercase tracking-widest">SYNCHRONIZING UPLINK...</p>
+            <div className="h-[1px] w-8 bg-gradient-to-l from-transparent to-blue-500" />
+          </div>
+        </div>
       </div>
     </div>
-  )
+  );
 }

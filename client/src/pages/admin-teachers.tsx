@@ -10,26 +10,26 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table";
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { 
-  Users, 
-  Search, 
-  MoreHorizontal, 
-  UserCheck, 
-  UserX, 
+import {
+  Users,
+  Search,
+  MoreHorizontal,
+  UserCheck,
+  UserX,
   Mail,
   BookOpen,
   Calendar
@@ -109,172 +109,171 @@ export default function AdminTeachers() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#020617] relative overflow-hidden flex flex-col">
       <Navigation />
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Teachers Management</h1>
-            <p className="text-muted-foreground">
-              Manage all teachers and their course activities
+
+      {/* Futuristic Background Elements */}
+      <div className="absolute inset-0 bg-cyber-grid opacity-10 pointer-events-none" />
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
+
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10 w-full pt-32">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
+          <div className="max-w-2xl">
+            <Badge className="mb-6 bg-blue-500/10 text-blue-400 border-none text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full">
+              IDENTITY PROTOCOLS // REGISTRY
+            </Badge>
+            <h1 className="text-5xl lg:text-7xl font-black text-white tracking-tighter mb-6">TEACHER <span className="text-glow-purple text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">INDEX.</span></h1>
+            <p className="text-xl text-blue-100/40 font-medium leading-relaxed">
+              Managing authorized <span className="text-purple-400 font-black uppercase tracking-widest">educator entities</span> and their neural output.
             </p>
           </div>
           <div className="flex items-center gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <div className="relative group">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/20 h-4 w-4 group-focus-within:text-purple-400 transition-colors" />
               <Input
-                placeholder="Search teachers..."
+                placeholder="FIND ENTITY..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-64"
+                className="pl-12 w-80 h-14 rounded-2xl bg-white/5 border-white/10 text-white font-black text-xs tracking-widest focus:ring-purple-400 focus:border-purple-400 placeholder:text-white/10"
               />
             </div>
           </div>
         </div>
 
         {/* Teachers Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-2xl font-bold text-primary">
-                    {teachers?.length || 0}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Total Teachers</div>
-                </div>
-                <Users className="h-8 w-8 text-primary" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+          <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-3xl group hover:bg-white/10 transition-all cursor-default relative overflow-hidden neon-border-blue">
+            <div className="flex items-center justify-between mb-8">
+              <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-500/20 flex items-center justify-center">
+                <Users className="h-6 w-6 text-blue-400" />
               </div>
-            </CardContent>
-          </Card>
+              <div className="text-[10px] font-black text-blue-400/40 uppercase tracking-widest">POPULATION</div>
+            </div>
+            <div className="text-4xl font-black text-white tracking-tighter">
+              {teachers?.length || 0}
+            </div>
+            <span className="text-[9px] font-black text-white/20 uppercase tracking-widest mt-2 block">REGISTERED EDUCATORS</span>
+          </div>
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-2xl font-bold text-green-600">
-                    {teachers?.filter(t => t.role === 'teacher').length || 0}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Active Teachers</div>
-                </div>
-                <UserCheck className="h-8 w-8 text-green-600" />
+          <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-3xl group hover:bg-white/10 transition-all cursor-default relative overflow-hidden neon-border-purple">
+            <div className="flex items-center justify-between mb-8">
+              <div className="w-12 h-12 rounded-2xl bg-green-500/20 border border-green-500/20 flex items-center justify-center">
+                <UserCheck className="h-6 w-6 text-green-400" />
               </div>
-            </CardContent>
-          </Card>
+              <div className="text-[10px] font-black text-green-400/40 uppercase tracking-widest">ACTIVE</div>
+            </div>
+            <div className="text-4xl font-black text-white tracking-tighter">
+              {teachers?.filter(t => t.role === 'teacher').length || 0}
+            </div>
+            <span className="text-[9px] font-black text-white/20 uppercase tracking-widest mt-2 block">VERIFIED PROTOCOLS</span>
+          </div>
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-2xl font-bold text-secondary">
-                    {teachers?.reduce((sum, teacher) => sum + teacher.courseCount, 0) || 0}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Total Courses</div>
-                </div>
-                <BookOpen className="h-8 w-8 text-secondary" />
+          <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-3xl group hover:bg-white/10 transition-all cursor-default relative overflow-hidden neon-border-blue">
+            <div className="flex items-center justify-between mb-8">
+              <div className="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-500/20 flex items-center justify-center">
+                <BookOpen className="h-6 w-6 text-purple-400" />
               </div>
-            </CardContent>
-          </Card>
+              <div className="text-[10px] font-black text-purple-400/40 uppercase tracking-widest">OUTPUT</div>
+            </div>
+            <div className="text-4xl font-black text-white tracking-tighter">
+              {teachers?.reduce((sum, teacher) => sum + teacher.courseCount, 0) || 0}
+            </div>
+            <span className="text-[9px] font-black text-white/20 uppercase tracking-widest mt-2 block">TOTAL DATA STREAMS</span>
+          </div>
         </div>
 
-        {/* Teachers Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              All Teachers ({filteredTeachers.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        {/* Teachers Table Area */}
+        <div className="rounded-[3rem] bg-white/5 border border-white/10 backdrop-blur-3xl overflow-hidden neon-border-purple">
+          <div className="p-10 border-b border-white/10">
+            <h3 className="text-xl font-black text-white uppercase tracking-widest flex items-center gap-4">
+              <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+              Entity Registry List ({filteredTeachers.length})
+            </h3>
+          </div>
+
+          <div className="overflow-x-auto">
             {teachersLoading ? (
-              <div className="space-y-4">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="flex items-center space-x-4 animate-pulse">
-                    <div className="h-10 w-10 bg-muted rounded-full" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-muted rounded w-1/4" />
-                      <div className="h-3 bg-muted rounded w-1/3" />
-                    </div>
-                  </div>
+              <div className="p-10 space-y-6">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="h-16 bg-white/5 rounded-2xl animate-pulse" />
                 ))}
               </div>
             ) : (
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Teacher</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Courses</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Joined</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                <TableHeader className="bg-white/5 border-white/10">
+                  <TableRow className="hover:bg-transparent border-white/10">
+                    <TableHead className="py-6 px-10 text-[10px] font-black text-white/40 uppercase tracking-widest">Entity</TableHead>
+                    <TableHead className="py-6 text-[10px] font-black text-white/40 uppercase tracking-widest">Comms</TableHead>
+                    <TableHead className="py-6 text-[10px] font-black text-white/40 uppercase tracking-widest">Streams</TableHead>
+                    <TableHead className="py-6 text-[10px] font-black text-white/40 uppercase tracking-widest">Status</TableHead>
+                    <TableHead className="py-6 text-[10px] font-black text-white/40 uppercase tracking-widest">Initialization</TableHead>
+                    <TableHead className="py-6 px-10 text-right text-[10px] font-black text-white/40 uppercase tracking-widest">Override</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredTeachers.map((teacher) => (
-                    <TableRow key={teacher.id}>
-                      <TableCell>
-                        <div className="flex items-center space-x-3">
-                          <Avatar className="h-10 w-10">
+                    <TableRow key={teacher.id} className="border-white/5 hover:bg-white/5 transition-colors group">
+                      <TableCell className="py-6 px-10">
+                        <div className="flex items-center gap-6">
+                          <Avatar className="h-12 w-12 border border-white/10 shadow-xl group-hover:scale-110 transition-transform">
                             <AvatarImage src={teacher.profileImageUrl} />
-                            <AvatarFallback>
+                            <AvatarFallback className="bg-purple-500/20 text-purple-400 font-black text-xs uppercase">
                               {teacher.firstName[0]}{teacher.lastName[0]}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="font-medium">
+                            <div className="font-black text-white uppercase tracking-wide group-hover:text-purple-400 transition-colors">
                               {teacher.firstName} {teacher.lastName}
                             </div>
-                            <div className="text-sm text-muted-foreground">
-                              ID: {teacher.id.slice(0, 8)}...
+                            <div className="text-[9px] font-black text-white/10 uppercase tracking-widest">
+                              ID: {teacher.id.slice(0, 16)}
                             </div>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-muted-foreground" />
+                      <TableCell className="py-6">
+                        <div className="flex items-center gap-3 text-white/40 text-[10px] font-black uppercase tracking-widest">
+                          <Mail className="h-3.5 w-3.5 text-blue-400" />
                           {teacher.email}
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <BookOpen className="h-4 w-4 text-muted-foreground" />
-                          {teacher.courseCount} courses
+                      <TableCell className="py-6">
+                        <div className="flex items-center gap-3 text-white/40 text-[10px] font-black uppercase tracking-widest">
+                          <BookOpen className="h-3.5 w-3.5 text-purple-400" />
+                          {teacher.courseCount} STREAMS
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={teacher.role === 'teacher' ? 'default' : 'secondary'}
+                      <TableCell className="py-6">
+                        <Badge
+                          className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border-none ${teacher.role === 'teacher' ? 'bg-green-500/10 text-green-400' : 'bg-white/5 text-white/40'}`}
                         >
-                          {teacher.role}
+                          {teacher.role === 'teacher' ? 'VERIFIED' : teacher.role.toUpperCase()}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <TableCell className="py-6">
+                        <div className="flex items-center gap-3 text-white/40 text-[10px] font-black uppercase tracking-widest">
+                          <Calendar className="h-3.5 w-3.5 text-blue-400" />
                           {new Date(teacher.createdAt).toLocaleDateString()}
                         </div>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="py-6 px-10 text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
+                            <Button variant="ghost" className="h-10 w-10 p-0 rounded-xl hover:bg-white/10 text-white/40 hover:text-white">
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
+                          <DropdownMenuContent align="end" className="bg-[#020617] border-white/10 rounded-2xl shadow-2xl p-2 min-w-[180px]">
                             {teacher.role === 'teacher' ? (
                               <DropdownMenuItem
                                 onClick={() => updateTeacherStatusMutation.mutate({
                                   teacherId: teacher.id,
                                   status: 'student'
                                 })}
-                                className="text-red-600"
+                                className="text-red-400 focus:bg-red-500/10 focus:text-red-400 rounded-xl font-black text-xs uppercase tracking-widest p-3 cursor-pointer"
                               >
-                                <UserX className="h-4 w-4 mr-2" />
-                                Suspend Teacher
+                                <UserX className="h-4 w-4 mr-3" />
+                                SUSPEND ENTITY
                               </DropdownMenuItem>
                             ) : (
                               <DropdownMenuItem
@@ -282,10 +281,10 @@ export default function AdminTeachers() {
                                   teacherId: teacher.id,
                                   status: 'teacher'
                                 })}
-                                className="text-green-600"
+                                className="text-green-400 focus:bg-green-500/10 focus:text-green-400 rounded-xl font-black text-xs uppercase tracking-widest p-3 cursor-pointer"
                               >
-                                <UserCheck className="h-4 w-4 mr-2" />
-                                Activate Teacher
+                                <UserCheck className="h-4 w-4 mr-3" />
+                                VERIFY ENTITY
                               </DropdownMenuItem>
                             )}
                           </DropdownMenuContent>
@@ -298,15 +297,17 @@ export default function AdminTeachers() {
             )}
 
             {!teachersLoading && filteredTeachers.length === 0 && (
-              <div className="text-center py-8">
-                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">
-                  {searchTerm ? "No teachers found matching your search." : "No teachers found."}
+              <div className="text-center py-24 flex flex-col items-center">
+                <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-8 border border-white/10">
+                  <Users className="h-10 w-10 text-white/10" />
+                </div>
+                <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">
+                  {searchTerm ? "No Matching Entities Found in Registry" : "Registry Database Empty"}
                 </p>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </main>
 
       <Footer />

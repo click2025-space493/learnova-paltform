@@ -31,53 +31,50 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-card border-t border-border py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-4 gap-8">
-          {/* Brand */}
-          <div>
-            <Link href="/" className="flex items-center mb-4" data-testid="footer-logo">
-              <div className="text-2xl font-bold text-primary">
-                <GraduationCap className="inline-block h-8 w-8 mr-2" />
-                Learnova
+    <footer className="cyber-gradient border-t border-white/5 py-24 relative overflow-hidden">
+      <div className="absolute inset-0 bg-cyber-grid opacity-5 pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-16 lg:gap-8">
+          {/* Brand Column */}
+          <div className="col-span-2 lg:col-span-2">
+            <Link href="/" className="group flex items-center gap-3 mb-10" data-testid="footer-logo">
+              <div className="w-10 h-10 bg-white text-black rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.2)] group-hover:rotate-6 group-hover:bg-blue-400 group-hover:text-white transition-all">
+                <GraduationCap className="h-6 w-6" />
               </div>
+              <span className="text-2xl font-black text-white tracking-tighter uppercase">
+                Learnova<span className="text-blue-500">.</span>
+              </span>
             </Link>
-            <p className="text-muted-foreground text-sm mb-4" data-testid="footer-description">
-              Empowering educators and students with innovative learning technology.
+            <p className="text-lg text-blue-100/40 font-medium mb-10 max-w-sm leading-relaxed" data-testid="footer-description">
+              The world's first decentralized neural-learning infrastructure. Building the future of mental evolution through quantum technology.
             </p>
-            <div className="flex space-x-4">
+            <div className="flex gap-4">
               {socialLinks.map((social, index) => (
-                <Button
+                <a
                   key={index}
-                  variant="ghost"
-                  size="sm"
-                  asChild
-                  className="text-muted-foreground hover:text-primary"
+                  href={social.href}
+                  className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:border-blue-400/50 hover:bg-blue-400/5 transition-all group/icon"
+                  aria-label={social.label}
                   data-testid={`social-${social.icon}`}
                 >
-                  <a href={social.href} aria-label={social.label}>
-                    <span className="sr-only">{social.label}</span>
-                    {/* Using text instead of icons for simplicity */}
-                    {social.icon === "twitter" && "𝕏"}
-                    {social.icon === "facebook" && "f"}
-                    {social.icon === "linkedin" && "in"}
-                  </a>
-                </Button>
+                  <span className="text-xs font-black uppercase tracking-widest group-hover/icon:text-glow-blue">{social.icon === "linkedin" ? "in" : social.icon[0]}</span>
+                </a>
               ))}
             </div>
           </div>
 
-          {/* Product */}
+          {/* Links Columns */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4" data-testid="footer-product-title">
-              Product
+            <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-10" data-testid="footer-product-title">
+              Protocol
             </h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+            <ul className="space-y-4">
               {productLinks.map((link, index) => (
                 <li key={index}>
                   <a
                     href={link.href}
-                    className="hover:text-primary transition-colors"
+                    className="text-white/60 font-bold hover:text-blue-400 transition-colors inline-block text-sm"
                     data-testid={`product-link-${index}`}
                   >
                     {link.label}
@@ -87,17 +84,16 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Support */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4" data-testid="footer-support-title">
-              Support
+            <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-10" data-testid="footer-support-title">
+              Terminal
             </h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+            <ul className="space-y-4">
               {supportLinks.map((link, index) => (
                 <li key={index}>
                   <a
                     href={link.href}
-                    className="hover:text-primary transition-colors"
+                    className="text-white/60 font-bold hover:text-blue-400 transition-colors inline-block text-sm"
                     data-testid={`support-link-${index}`}
                   >
                     {link.label}
@@ -107,17 +103,16 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Company */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4" data-testid="footer-company-title">
-              Company
+            <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-10" data-testid="footer-company-title">
+              Entity
             </h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+            <ul className="space-y-4">
               {companyLinks.map((link, index) => (
                 <li key={index}>
                   <a
                     href={link.href}
-                    className="hover:text-primary transition-colors"
+                    className="text-white/60 font-bold hover:text-blue-400 transition-colors inline-block text-sm"
                     data-testid={`company-link-${index}`}
                   >
                     {link.label}
@@ -128,10 +123,16 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-border mt-8 pt-8 text-center">
-          <p className="text-sm text-muted-foreground" data-testid="footer-copyright">
-            © 2024 Learnova. All rights reserved. Built with ❤️ for educators worldwide.
+        {/* Bottom Bar */}
+        <div className="border-t border-white/5 mt-24 pt-10 flex flex-col md:flex-row items-center justify-between gap-8">
+          <p className="text-xs font-black text-white/20 uppercase tracking-widest" data-testid="footer-copyright">
+            © 2025 Learnova Studio // Neural Network v1.0.4
           </p>
+          <div className="flex gap-10">
+            <a href="#" className="text-[10px] font-black text-white/20 hover:text-blue-400 uppercase tracking-[0.2em] transition-colors">Privacy.LOG</a>
+            <a href="#" className="text-[10px] font-black text-white/20 hover:text-blue-400 uppercase tracking-[0.2em] transition-colors">Terms.LOG</a>
+            <a href="#" className="text-[10px] font-black text-white/20 hover:text-blue-400 uppercase tracking-[0.2em] transition-colors">Hash.8723</a>
+          </div>
         </div>
       </div>
     </footer>

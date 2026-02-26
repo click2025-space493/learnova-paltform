@@ -45,24 +45,28 @@ export default function Navigation() {
   };
 
   return (
-    <nav className="bg-card border-b border-border sticky top-0 z-50 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-xl border-b border-white/5 h-20 flex items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div className="flex justify-between items-center">
           {/* Logo */}
-          <Link href="/" className="flex items-center" data-testid="link-logo">
-            <div className="text-2xl font-bold text-primary">
-              <GraduationCap className="inline-block h-8 w-8 mr-2" />
-              Learnova
+          <Link href="/" className="flex items-center group transition-all duration-300" data-testid="link-logo">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white text-black rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.3)] group-hover:scale-105 group-hover:bg-blue-400 group-hover:text-white transition-all">
+                <GraduationCap className="h-6 w-6" />
+              </div>
+              <span className="text-xl font-black tracking-tighter text-white uppercase group-hover:text-blue-400 transition-colors">
+                Learnova<span className="text-blue-500">.</span>
+              </span>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-12">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-foreground hover:text-primary transition-colors"
+                className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 hover:text-white hover:text-glow-blue transition-all"
                 data-testid={`link-${link.label.toLowerCase()}`}
               >
                 {link.label}
@@ -71,102 +75,87 @@ export default function Navigation() {
 
             {/* User Actions */}
             {isAuthenticated ? (
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-6">
                 {user?.role === 'teacher' && (
                   <Link href="/create-course">
-                    <Button size="sm" variant="outline" data-testid="button-create-course">
-                      Create Course
+                    <Button size="sm" className="bg-blue-500 hover:bg-blue-400 text-white font-black text-[10px] uppercase tracking-widest rounded-xl px-6 h-10 border-none shadow-[0_0_15px_rgba(59,130,246,0.3)]" data-testid="button-create-course">
+                      New Stream
                     </Button>
                   </Link>
                 )}
-                
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-8 w-8 rounded-full" data-testid="button-user-menu">
-                      <Avatar className="h-8 w-8">
+                    <Button variant="ghost" className="relative h-10 w-10 rounded-xl p-0 border border-white/10 hover:bg-white/5" data-testid="button-user-menu">
+                      <Avatar className="h-8 w-8 rounded-lg">
                         <AvatarImage src={user?.avatar_url || ""} alt={user?.name || ""} />
-                        <AvatarFallback>
+                        <AvatarFallback className="bg-white/5 text-white text-xs font-black">
                           {user?.name?.[0] || user?.email?.[0] || 'U'}
                         </AvatarFallback>
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end" forceMount>
-                    <div className="flex items-center justify-start gap-2 p-2">
-                      <div className="flex flex-col space-y-1 leading-none">
-                        <p className="text-sm font-medium" data-testid="text-user-name">
+                  <DropdownMenuContent className="w-64 bg-black/90 backdrop-blur-2xl border-white/10 p-2 rounded-2xl" align="end" forceMount>
+                    <div className="flex items-center justify-start gap-3 p-3 mb-2 bg-white/5 rounded-xl">
+                      <Avatar className="h-10 w-10 rounded-lg">
+                        <AvatarImage src={user?.avatar_url || ""} alt={user?.name || ""} />
+                        <AvatarFallback className="bg-white/10 text-white text-xs font-black">
+                          {user?.name?.[0] || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col space-y-1 overflow-hidden">
+                        <p className="text-sm font-black text-white truncate" data-testid="text-user-name">
                           {user?.name}
                         </p>
-                        <p className="text-xs text-muted-foreground" data-testid="text-user-email">
+                        <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest truncate" data-testid="text-user-email">
                           {user?.email}
                         </p>
                       </div>
                     </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href={getUserDashboardLink()} className="w-full" data-testid="link-dashboard">
-                        {user?.role === 'teacher' && <Users className="mr-2 h-4 w-4" />}
-                        {user?.role === 'student' && <BookOpen className="mr-2 h-4 w-4" />}
-                        {user?.role === 'admin' && <BarChart3 className="mr-2 h-4 w-4" />}
+                    <DropdownMenuSeparator className="bg-white/5" />
+                    <DropdownMenuItem asChild className="focus:bg-blue-500 focus:text-white rounded-lg transition-colors p-3">
+                      <Link href={getUserDashboardLink()} className="w-full flex items-center font-bold text-sm" data-testid="link-dashboard">
+                        {user?.role === 'teacher' && <Users className="mr-3 h-4 w-4" />}
+                        {user?.role === 'student' && <BookOpen className="mr-3 h-4 w-4" />}
+                        {user?.role === 'admin' && <BarChart3 className="mr-3 h-4 w-4" />}
                         {getUserDashboardLabel()}
                       </Link>
                     </DropdownMenuItem>
-                    {user?.role === 'admin' && (
-                      <>
-                        <DropdownMenuItem asChild>
-                          <Link href="/admin/teachers" className="w-full" data-testid="link-admin-teachers">
-                            <Users className="mr-2 h-4 w-4" />
-                            Teachers Management
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/admin/courses" className="w-full" data-testid="link-admin-courses">
-                            <BookOpen className="mr-2 h-4 w-4" />
-                            Courses Management
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/admin/videos" className="w-full" data-testid="link-admin-videos">
-                            <div className="mr-2 h-4 w-4 bg-current rounded-sm opacity-70" />
-                            Video Management
-                          </Link>
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile" className="w-full" data-testid="link-profile">
-                        <User className="mr-2 h-4 w-4" />
-                        Profile
+
+                    <DropdownMenuItem asChild className="focus:bg-white/10 focus:text-white rounded-lg transition-colors p-3">
+                      <Link href="/profile" className="w-full flex items-center font-bold text-sm" data-testid="link-profile">
+                        <User className="mr-3 h-4 w-4" />
+                        Bio-Link
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/settings" className="w-full" data-testid="link-settings">
-                        <Settings className="mr-2 h-4 w-4" />
-                        Settings
+                    <DropdownMenuItem asChild className="focus:bg-white/10 focus:text-white rounded-lg transition-colors p-3">
+                      <Link href="/settings" className="w-full flex items-center font-bold text-sm" data-testid="link-settings">
+                        <Settings className="mr-3 h-4 w-4" />
+                        Config
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <a href="/api/logout" className="w-full" data-testid="link-logout">
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Log out
+                    <DropdownMenuSeparator className="bg-white/5" />
+                    <DropdownMenuItem asChild className="focus:bg-red-500/20 focus:text-red-400 rounded-lg transition-colors p-3">
+                      <a href="/api/logout" className="w-full flex items-center font-bold text-sm text-red-400" data-testid="link-logout">
+                        <LogOut className="mr-3 h-4 w-4" />
+                        Disconnect
                       </a>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
             ) : (
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-8">
                 <Link
                   href="/signin"
-                  className="text-foreground hover:text-primary transition-colors"
+                  className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 hover:text-white transition-colors"
                   data-testid="link-signin"
                 >
-                  Sign In
+                  Auth
                 </Link>
                 <Link href="/role-selection">
-                  <Button data-testid="button-get-started">
-                    Get Started
+                  <Button className="bg-white text-black font-black text-[10px] uppercase tracking-[0.2em] rounded-xl px-8 h-12 border-none shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:bg-blue-400 hover:text-white transition-all" data-testid="button-get-started">
+                    Initialize
                   </Button>
                 </Link>
               </div>
@@ -194,7 +183,7 @@ export default function Navigation() {
                       {link.label}
                     </Link>
                   ))}
-                  
+
                   {isAuthenticated ? (
                     <div className="pt-4 border-t border-border space-y-4">
                       <div className="flex items-center space-x-3">
@@ -213,7 +202,7 @@ export default function Navigation() {
                           </p>
                         </div>
                       </div>
-                      
+
                       <Link
                         href={getUserDashboardLink()}
                         className="block text-foreground hover:text-primary transition-colors"
@@ -222,7 +211,7 @@ export default function Navigation() {
                       >
                         {getUserDashboardLabel()}
                       </Link>
-                      
+
                       {user?.role === 'admin' && (
                         <>
                           <Link
@@ -251,7 +240,7 @@ export default function Navigation() {
                           </Link>
                         </>
                       )}
-                      
+
                       {user?.role === 'teacher' && (
                         <Link
                           href="/create-course"
@@ -262,7 +251,7 @@ export default function Navigation() {
                           Create Course
                         </Link>
                       )}
-                      
+
                       <a
                         href="/api/logout"
                         className="block text-foreground hover:text-primary transition-colors"

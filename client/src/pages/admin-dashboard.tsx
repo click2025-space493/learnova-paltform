@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
@@ -9,7 +9,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Users, BookOpen, DollarSign, UserCheck, Settings, CheckCircle, XCircle } from "lucide-react";
+import {
+  Users,
+  BookOpen,
+  CreditCard,
+  BarChart3,
+  Settings,
+  UserCheck,
+  TrendingUp,
+  Layout
+} from "lucide-react";
 import type { AdminStats } from "@/types/api";
 
 export default function AdminDashboard() {
@@ -81,236 +90,196 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#020617] relative overflow-hidden flex flex-col">
       <Navigation />
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
-            <p className="text-muted-foreground">
-              Platform overview and management tools
+
+      {/* Futuristic Background Elements */}
+      <div className="absolute inset-0 bg-cyber-grid opacity-10 pointer-events-none" />
+      <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-red-500/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 left-1/4 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
+
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10 w-full pt-32">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-20">
+          <div className="max-w-2xl">
+            <Badge className="mb-6 bg-red-500/10 text-red-400 border-none text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full">
+              GLOBAL OVERRIDE // ADMIN ACCESS
+            </Badge>
+            <h1 className="text-5xl lg:text-7xl font-black text-white tracking-tighter mb-6">SYSTEM <span className="text-glow-blue text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">CORE.</span></h1>
+            <p className="text-xl text-blue-100/40 font-medium leading-relaxed">
+              Platform status: <span className="text-green-400 font-black uppercase tracking-widest">Master Operational</span>. Overview of global neural metrics.
             </p>
           </div>
-          <Button variant="outline" data-testid="button-system-settings">
-            <Settings className="h-4 w-4 mr-2" />
-            System Settings
-          </Button>
+          <div className="flex gap-4">
+            <Link href="/admin/settings">
+              <Button variant="outline" className="h-16 px-8 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-white/5 border-white/10 text-white hover:bg-white hover:text-black transition-all" data-testid="button-system-settings">
+                <Settings className="h-4 w-4 mr-2" />
+                CONFIG
+              </Button>
+            </Link>
+            <Link href="/admin/courses">
+              <Button className="h-16 px-10 rounded-2xl bg-white text-black font-black text-[10px] uppercase tracking-widest hover:bg-blue-400 hover:text-white transition-all shadow-2xl shadow-blue-500/20 border-none">
+                <Layout className="h-4 w-4 mr-2" />
+                CENTRAL ARCHIVE
+              </Button>
+            </Link>
+          </div>
         </div>
 
-        {/* Quick Navigation */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setLocation("/admin/teachers")}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Teachers Management</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Manage all teachers and their activities
-                  </p>
-                </div>
-                <Users className="h-8 w-8 text-primary" />
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-3xl group hover:bg-white/10 transition-all cursor-default relative overflow-hidden neon-border-blue">
+            <div className="flex items-center justify-between mb-8 relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-500/20 flex items-center justify-center group-hover:rotate-12 transition-transform">
+                <Users className="h-6 w-6 text-blue-400" />
               </div>
-            </CardContent>
-          </Card>
+              <div className="text-[10px] font-black text-blue-400/40 uppercase tracking-widest">TOTAL POPULATION</div>
+            </div>
+            <div className="text-4xl font-black text-white tracking-tighter relative z-10" data-testid="text-total-users">
+              {statsLoading ? "..." : (stats?.totalUsers || 0).toLocaleString()}
+            </div>
+            <div className="flex items-center gap-1 text-green-400 text-[10px] font-black mt-4 uppercase tracking-widest relative z-10">
+              <TrendingUp className="h-3 w-3" />
+              <span>+12.5% GROWTH</span>
+            </div>
+          </div>
 
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setLocation("/admin/courses")}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Courses Overview</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Monitor courses and student enrollments
-                  </p>
-                </div>
-                <BookOpen className="h-8 w-8 text-secondary" />
+          <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-3xl group hover:bg-white/10 transition-all cursor-default relative overflow-hidden neon-border-purple">
+            <div className="flex items-center justify-between mb-8 relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-500/20 flex items-center justify-center group-hover:rotate-12 transition-transform">
+                <BookOpen className="h-6 w-6 text-purple-400" />
               </div>
-            </CardContent>
-          </Card>
+              <div className="text-[10px] font-black text-purple-400/40 uppercase tracking-widest">ACTIVE STREAMS</div>
+            </div>
+            <div className="text-4xl font-black text-white tracking-tighter relative z-10" data-testid="text-total-courses">
+              {statsLoading ? "..." : (stats?.totalCourses || 0).toLocaleString()}
+            </div>
+            <div className="flex items-center gap-1 text-green-400 text-[10px] font-black mt-4 uppercase tracking-widest relative z-10">
+              <TrendingUp className="h-3 w-3" />
+              <span>+8.2% SCALE</span>
+            </div>
+          </div>
 
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setLocation("/admin/videos")}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Video Management</h3>
-                  <p className="text-sm text-muted-foreground">
-                    View and manage all platform videos
-                  </p>
-                </div>
-                <div className="h-8 w-8 bg-accent/20 rounded flex items-center justify-center">
-                  <div className="h-4 w-4 bg-accent rounded-sm" />
-                </div>
+          <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-3xl group hover:bg-white/10 transition-all cursor-default relative overflow-hidden neon-border-blue">
+            <div className="flex items-center justify-between mb-8 relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-500/20 flex items-center justify-center group-hover:rotate-12 transition-transform">
+                <CreditCard className="h-6 w-6 text-blue-400" />
               </div>
-            </CardContent>
-          </Card>
+              <div className="text-[10px] font-black text-blue-400/40 uppercase tracking-widest">TOTAL VOLUME</div>
+            </div>
+            <div className="text-4xl font-black text-white tracking-tighter relative z-10" data-testid="text-total-revenue">
+              ${statsLoading ? "..." : (stats?.totalRevenue || 0).toLocaleString()}
+            </div>
+            <div className="flex items-center gap-1 text-green-400 text-[10px] font-black mt-4 uppercase tracking-widest relative z-10">
+              <TrendingUp className="h-3 w-3" />
+              <span>+15.3% REVENUE</span>
+            </div>
+          </div>
 
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setLocation("/admin/subscription-requests")}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Subscription Requests</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Review teacher subscription requests
-                  </p>
-                </div>
-                <div className="h-8 w-8 bg-yellow-100 rounded flex items-center justify-center">
-                  <UserCheck className="h-5 w-5 text-yellow-600" />
-                </div>
+          <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-3xl group hover:bg-white/10 transition-all cursor-default relative overflow-hidden neon-border-purple">
+            <div className="flex items-center justify-between mb-8 relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-500/20 flex items-center justify-center group-hover:rotate-12 transition-transform">
+                <BarChart3 className="h-6 w-6 text-purple-400" />
               </div>
-            </CardContent>
-          </Card>
+              <div className="text-[10px] font-black text-purple-400/40 uppercase tracking-widest">CORE QUALITY</div>
+            </div>
+            <div className="text-4xl font-black text-white tracking-tighter relative z-10">
+              4.9
+            </div>
+            <div className="flex items-center gap-1 text-purple-400 text-[10px] font-black mt-4 uppercase tracking-widest relative z-10">
+              <TrendingUp className="h-3 w-3" />
+              <span>ELITE TIER</span>
+            </div>
+          </div>
         </div>
 
-        {/* Platform Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-2xl font-bold text-primary" data-testid="text-total-users">
-                    {statsLoading ? "..." : (stats?.totalUsers || 0).toLocaleString()}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Total Users</div>
-                  <div className="text-xs text-green-600 mt-1">+12% this month</div>
-                </div>
-                <Users className="h-8 w-8 text-primary" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-2xl font-bold text-secondary" data-testid="text-total-courses">
-                    {statsLoading ? "..." : (stats?.totalCourses || 0).toLocaleString()}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Total Courses</div>
-                  <div className="text-xs text-green-600 mt-1">+8% this month</div>
-                </div>
-                <BookOpen className="h-8 w-8 text-secondary" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-2xl font-bold text-accent" data-testid="text-total-revenue">
-                    ${statsLoading ? "..." : (stats?.totalRevenue || 0).toLocaleString()}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Total Revenue</div>
-                  <div className="text-xs text-green-600 mt-1">+15% this month</div>
-                </div>
-                <DollarSign className="h-8 w-8 text-accent" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-2xl font-bold text-green-600" data-testid="text-active-teachers">
-                    {statsLoading ? "..." : (stats?.activeTeachers || 0)}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Active Teachers</div>
-                  <div className="text-xs text-green-600 mt-1">+5% this month</div>
-                </div>
-                <UserCheck className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-2 gap-16">
           {/* Recent Teachers */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Teachers</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentTeachers && recentTeachers.length > 0 ? (
-                  recentTeachers.map((teacher: any) => (
-                    <div key={teacher.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                      <div className="flex items-center">
-                        <Avatar className="h-10 w-10 mr-3">
+          <section className="space-y-10">
+            <div className="flex items-center justify-between">
+              <h2 className="text-3xl font-black text-white uppercase tracking-tight">ACTIVE ENTITIES</h2>
+              <Link href="/admin/teachers">
+                <Button variant="ghost" className="text-blue-400 text-xs font-black uppercase tracking-widest hover:bg-blue-500/5">
+                  Full Registry →
+                </Button>
+              </Link>
+            </div>
+            <div className="space-y-6">
+              {recentTeachers && recentTeachers.length > 0 ? (
+                recentTeachers.map((teacher: any) => (
+                  <div key={teacher.id} className="p-6 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-3xl hover:bg-white/10 transition-all group cursor-default">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-6">
+                        <Avatar className="h-14 w-14 border border-white/10 shadow-2xl">
                           <AvatarImage src={teacher.profileImageUrl} />
-                          <AvatarFallback>
-                            {teacher.firstName?.[0]}{teacher.lastName?.[0]}
+                          <AvatarFallback className="bg-white/5 text-white font-black text-xs uppercase">
+                            {teacher.firstName?.[0] || teacher.email?.[0]?.toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="text-sm font-medium text-foreground">
+                          <h4 className="font-black text-white uppercase tracking-wide group-hover:text-blue-400 transition-colors">
                             {teacher.name || `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim() || teacher.email}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {teacher.email}
-                          </div>
+                          </h4>
+                          <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">{teacher.email}</p>
                         </div>
                       </div>
-                      <Badge variant="secondary">
+                      <Badge className="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-lg">
                         {teacher.role}
                       </Badge>
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center py-4">
-                    <p className="text-sm text-muted-foreground">
-                      No teachers found.
-                    </p>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                ))
+              ) : (
+                <div className="p-16 text-center border border-dashed border-white/10 bg-white/5 rounded-[2.5rem]">
+                  <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">No Entities Detected</p>
+                </div>
+              )}
+            </div>
+          </section>
 
           {/* Recent Courses */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Courses</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentCourses && recentCourses.length > 0 ? (
-                  recentCourses.map((course: any) => (
-                    <div key={course.id} className="flex items-center p-3 bg-muted rounded-lg">
-                      <div className="w-10 h-10 bg-secondary/10 rounded-full flex items-center justify-center mr-3">
-                        <BookOpen className="h-5 w-5 text-secondary" />
+          <section className="space-y-10">
+            <div className="flex items-center justify-between">
+              <h2 className="text-3xl font-black text-white uppercase tracking-tight">DATA STREAMS</h2>
+              <Link href="/admin/courses">
+                <Button variant="ghost" className="text-purple-400 text-xs font-black uppercase tracking-widest hover:bg-purple-500/5">
+                  Central Terminal →
+                </Button>
+              </Link>
+            </div>
+            <div className="space-y-6">
+              {recentCourses && recentCourses.length > 0 ? (
+                recentCourses.map((course: any) => (
+                  <div key={course.id} className="p-6 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-3xl hover:bg-white/10 transition-all group cursor-default">
+                    <div className="flex items-center gap-6">
+                      <div className="w-14 h-14 bg-purple-500/10 border border-purple-500/20 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all shadow-[0_0_15px_rgba(168,85,247,0.1)]">
+                        <BookOpen className="h-7 w-7 text-purple-400" />
                       </div>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-foreground">
-                          {course.title}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-black text-white uppercase tracking-wide truncate pr-4 group-hover:text-purple-400 transition-colors" data-testid={`text-course-title-${course.id}`}>
+                            {course.title}
+                          </h4>
+                          <Badge className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border-none ${course.status === 'published' ? "bg-green-500/10 text-green-400" : "bg-purple-500/10 text-purple-400"}`}>
+                            {course.status}
+                          </Badge>
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          by {course.teacherName}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {course.enrollmentCount} students • {course.lessonCount} lessons
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <Badge variant={course.status === 'published' ? 'default' : 'secondary'}>
-                          {course.status}
-                        </Badge>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          ${course.price}
+                        <div className="flex items-center gap-6 text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">
+                          <span>{course.teacherName}</span>
+                          <span className="w-1 h-1 rounded-full bg-white/10" />
+                          <span>{course.enrollmentCount} NODES</span>
                         </div>
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center py-4">
-                    <p className="text-sm text-muted-foreground">
-                      No courses found.
-                    </p>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                ))
+              ) : (
+                <div className="p-16 text-center border border-dashed border-white/10 bg-white/5 rounded-[2.5rem]">
+                  <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">No Streams Detected</p>
+                </div>
+              )}
+            </div>
+          </section>
         </div>
       </main>
 

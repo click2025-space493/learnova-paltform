@@ -56,7 +56,7 @@ export default function CoursePayment() {
     queryKey: ['course-payment', courseId],
     queryFn: async () => {
       if (!courseId) throw new Error('Course ID is required');
-      
+
       const { data, error } = await supabase
         .from('courses')
         .select(`
@@ -76,15 +76,15 @@ export default function CoursePayment() {
         .eq('id', courseId)
         .eq('is_published', true)
         .single();
-      
+
       if (error) throw error;
-      
+
       // Transform the data to handle array responses
       const transformedData = {
         ...data,
         teacher: Array.isArray(data.teacher) ? data.teacher[0] : data.teacher
       };
-      
+
       return transformedData;
     },
     enabled: !!courseId,
@@ -95,14 +95,14 @@ export default function CoursePayment() {
     queryKey: ['enrollment-request', courseId, user?.id],
     queryFn: async () => {
       if (!courseId || !user?.id) return null;
-      
+
       const { data, error } = await supabase
         .from('enrollment_requests')
         .select('*')
         .eq('course_id', courseId)
         .eq('student_id', user.id)
         .single();
-      
+
       if (error && error.code !== 'PGRST116') throw error;
       return data;
     },
@@ -136,7 +136,7 @@ export default function CoursePayment() {
   const submitRequestMutation = useMutation({
     mutationFn: async (data: PaymentForm) => {
       if (!courseId || !user?.id) throw new Error('Course ID and user required');
-      
+
       const { error } = await supabase
         .from('enrollment_requests')
         .insert({
@@ -148,7 +148,7 @@ export default function CoursePayment() {
           payment_screenshot_url: data.paymentScreenshot,
           status: 'pending'
         });
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
@@ -223,73 +223,73 @@ export default function CoursePayment() {
             <CardContent className="p-6">
               <div className="text-center">
                 {existingRequest.status === 'approved' ? (
-                <>
-                  <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-                  <h2 className="text-2xl font-bold mb-2">Enrollment Approved!</h2>
-                  <p className="text-muted-foreground mb-4">
-                    Congratulations! Your enrollment for "{course?.title}" has been approved.
-                  </p>
-                  <Badge variant="default" className="mb-4">
-                    Status: Approved
-                  </Badge>
-                  <div className="flex gap-2 justify-center">
-                    <Button onClick={() => setLocation(`/courses/${courseId}/learn`)}>
-                      Start Learning
-                    </Button>
-                    <Button variant="outline" onClick={() => setLocation("/dashboard")}>
-                      Go to Dashboard
-                    </Button>
-                  </div>
-                </>
-              ) : existingRequest.status === 'rejected' ? (
-                <>
-                  <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-                  <h2 className="text-2xl font-bold mb-2">Enrollment Rejected</h2>
-                  <p className="text-muted-foreground mb-4">
-                    Unfortunately, your enrollment request for "{course?.title}" was not approved.
-                  </p>
-                  <Badge variant="destructive" className="mb-4">
-                    Status: Rejected
-                  </Badge>
-                  {existingRequest.notes && (
-                    <div className="bg-muted p-4 rounded-lg mb-4">
-                      <p className="text-sm"><strong>Instructor Notes:</strong> {existingRequest.notes}</p>
+                  <>
+                    <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold mb-2">Enrollment Approved!</h2>
+                    <p className="text-muted-foreground mb-4">
+                      Congratulations! Your enrollment for "{course?.title}" has been approved.
+                    </p>
+                    <Badge variant="default" className="mb-4">
+                      Status: Approved
+                    </Badge>
+                    <div className="flex gap-2 justify-center">
+                      <Button onClick={() => setLocation(`/courses/${courseId}/learn`)}>
+                        Start Learning
+                      </Button>
+                      <Button variant="outline" onClick={() => setLocation("/dashboard")}>
+                        Go to Dashboard
+                      </Button>
                     </div>
-                  )}
-                  <div className="flex gap-2 justify-center">
-                    <Button variant="outline" onClick={() => setLocation(`/courses/${courseId}`)}>
-                      <ArrowLeft className="h-4 w-4 mr-2" />
-                      Back to Course
-                    </Button>
-                    <Button onClick={() => setLocation("/dashboard")}>
-                      Go to Dashboard
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <Clock className="h-16 w-16 text-orange-500 mx-auto mb-4" />
-                  <h2 className="text-2xl font-bold mb-2">Enrollment Request Submitted</h2>
-                  <p className="text-muted-foreground mb-4">
-                    Your enrollment request for "{course?.title}" is currently being reviewed by the instructor.
-                  </p>
-                  <Badge variant="secondary" className="mb-4">
-                    Status: Pending Review
-                  </Badge>
-                  <div className="flex gap-2 justify-center">
-                    <Button variant="outline" onClick={() => setLocation(`/courses/${courseId}`)}>
-                      <ArrowLeft className="h-4 w-4 mr-2" />
-                      Back to Course
-                    </Button>
-                    <Button onClick={() => setLocation("/dashboard")}>
-                      Go to Dashboard
-                    </Button>
-                  </div>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                  </>
+                ) : existingRequest.status === 'rejected' ? (
+                  <>
+                    <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold mb-2">Enrollment Rejected</h2>
+                    <p className="text-muted-foreground mb-4">
+                      Unfortunately, your enrollment request for "{course?.title}" was not approved.
+                    </p>
+                    <Badge variant="destructive" className="mb-4">
+                      Status: Rejected
+                    </Badge>
+                    {existingRequest.notes && (
+                      <div className="bg-muted p-4 rounded-lg mb-4">
+                        <p className="text-sm"><strong>Instructor Notes:</strong> {existingRequest.notes}</p>
+                      </div>
+                    )}
+                    <div className="flex gap-2 justify-center">
+                      <Button variant="outline" onClick={() => setLocation(`/courses/${courseId}`)}>
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Back to Course
+                      </Button>
+                      <Button onClick={() => setLocation("/dashboard")}>
+                        Go to Dashboard
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Clock className="h-16 w-16 text-orange-500 mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold mb-2">Enrollment Request Submitted</h2>
+                    <p className="text-muted-foreground mb-4">
+                      Your enrollment request for "{course?.title}" is currently being reviewed by the instructor.
+                    </p>
+                    <Badge variant="secondary" className="mb-4">
+                      Status: Pending Review
+                    </Badge>
+                    <div className="flex gap-2 justify-center">
+                      <Button variant="outline" onClick={() => setLocation(`/courses/${courseId}`)}>
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Back to Course
+                      </Button>
+                      <Button onClick={() => setLocation("/dashboard")}>
+                        Go to Dashboard
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </main>
         <Footer />
       </div>
@@ -297,45 +297,57 @@ export default function CoursePayment() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#020617] relative overflow-hidden flex flex-col">
       <Navigation />
-      
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
+
+      {/* Futuristic Background Elements */}
+      <div className="absolute inset-0 bg-cyber-grid opacity-10 pointer-events-none" />
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[120px] pointer-events-none" />
+
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative z-10 pt-40 w-full">
+        <div className="mb-12">
           <Link href={`/courses/${courseId}`}>
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Course
+            <Button
+              variant="ghost"
+              className="p-0 h-auto text-white/30 hover:text-blue-400 font-black text-[10px] uppercase tracking-[0.3em] transition-all hover:bg-transparent group"
+            >
+              <ArrowLeft className="h-4 w-4 mr-3 group-hover:-translate-x-2 transition-transform" />
+              REVERT TO OVERVIEW
             </Button>
           </Link>
+          <div className="mt-8">
+            <Badge className="mb-4 bg-blue-500/10 text-blue-400 border-none text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full">
+              TRANSACTION TERMINAL
+            </Badge>
+            <h1 className="text-4xl lg:text-6xl font-black text-white tracking-tighter uppercase leading-tight">INITIALIZE <span className="text-glow-purple text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 italic">ACCESS.</span></h1>
+            <p className="text-blue-100/40 font-medium tracking-tight uppercase text-xs mt-2">Securing Knowledge Stream // ID-{courseId?.slice(0, 8)}</p>
+          </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-12 gap-12">
           {/* Payment Form */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5" />
-                  Complete Your Enrollment
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+          <div className="lg:col-span-8">
+            <div className="rounded-[3rem] bg-white/5 border border-white/10 backdrop-blur-3xl overflow-hidden shadow-2xl neon-border-blue">
+              <div className="p-10 border-b border-white/10 flex items-center justify-between">
+                <h2 className="text-xl font-black text-white tracking-widest uppercase flex items-center gap-4">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+                  CREDENTIALS & PAYMENT
+                </h2>
+              </div>
+              <div className="p-10 lg:p-12">
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
                     <FormField
                       control={form.control}
                       name="studentName"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Student Name</FormLabel>
+                        <FormItem className="space-y-4">
+                          <FormLabel className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-2">STUDENT IDENTIFIER</FormLabel>
                           <FormControl>
-                            <Input
-                              placeholder="Enter your full name"
-                              {...field}
-                            />
+                            <Input placeholder="ENTER FULL LEGAL NAME..." {...field} className="h-16 bg-white/5 border-white/10 rounded-2xl text-white font-black text-xs uppercase tracking-widest focus-visible:ring-blue-500/20 placeholder:text-white/10" />
                           </FormControl>
-                          <FormMessage />
+                          <FormMessage className="text-red-400 text-[10px] font-black uppercase tracking-widest ml-2" />
                         </FormItem>
                       )}
                     />
@@ -344,37 +356,41 @@ export default function CoursePayment() {
                       control={form.control}
                       name="paymentMethod"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Select Payment Method</FormLabel>
+                        <FormItem className="space-y-4">
+                          <FormLabel className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-2">PAYMENT UPLINK METHOD</FormLabel>
                           <FormControl>
                             <RadioGroup
                               onValueChange={field.onChange}
                               value={field.value}
-                              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                              className="grid grid-cols-1 md:grid-cols-2 gap-6"
                             >
                               {course.instapay_number && (
-                                <div className="flex items-center space-x-2 border rounded-lg p-4 hover:bg-muted/50">
-                                  <RadioGroupItem value="instapay" id="instapay" />
-                                  <label htmlFor="instapay" className="flex items-center gap-3 cursor-pointer flex-1">
-                                    <CreditCard className="h-6 w-6 text-blue-600" />
+                                <div className={`flex items-center space-x-2 border-2 rounded-2xl p-6 transition-all cursor-pointer ${field.value === 'instapay' ? 'bg-blue-500/10 border-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.1)]' : 'bg-white/5 border-white/10 hover:border-white/20'}`}>
+                                  <RadioGroupItem value="instapay" id="instapay" className="border-white/20 text-blue-500" />
+                                  <label htmlFor="instapay" className="flex items-center gap-4 cursor-pointer flex-1">
+                                    <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                                      <CreditCard className="h-6 w-6 text-blue-400" />
+                                    </div>
                                     <div>
-                                      <div className="font-medium">InstaPay</div>
-                                      <div className="text-sm text-muted-foreground">
+                                      <div className="font-black text-xs text-white uppercase tracking-widest">InstaPay</div>
+                                      <div className="text-[10px] font-medium text-white/40 mt-1 uppercase tracking-tighter">
                                         {course.instapay_number}
                                       </div>
                                     </div>
                                   </label>
                                 </div>
                               )}
-                              
+
                               {course.vodafone_cash_number && (
-                                <div className="flex items-center space-x-2 border rounded-lg p-4 hover:bg-muted/50">
-                                  <RadioGroupItem value="vodafone_cash" id="vodafone_cash" />
-                                  <label htmlFor="vodafone_cash" className="flex items-center gap-3 cursor-pointer flex-1">
-                                    <Smartphone className="h-6 w-6 text-red-600" />
+                                <div className={`flex items-center space-x-2 border-2 rounded-2xl p-6 transition-all cursor-pointer ${field.value === 'vodafone_cash' ? 'bg-red-500/10 border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.1)]' : 'bg-white/5 border-white/10 hover:border-white/20'}`}>
+                                  <RadioGroupItem value="vodafone_cash" id="vodafone_cash" className="border-white/20 text-red-500" />
+                                  <label htmlFor="vodafone_cash" className="flex items-center gap-4 cursor-pointer flex-1">
+                                    <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center">
+                                      <Smartphone className="h-6 w-6 text-red-400" />
+                                    </div>
                                     <div>
-                                      <div className="font-medium">Vodafone Cash</div>
-                                      <div className="text-sm text-muted-foreground">
+                                      <div className="font-black text-xs text-white uppercase tracking-widest">VF Cash</div>
+                                      <div className="text-[10px] font-medium text-white/40 mt-1 uppercase tracking-tighter">
                                         {course.vodafone_cash_number}
                                       </div>
                                     </div>
@@ -383,15 +399,18 @@ export default function CoursePayment() {
                               )}
                             </RadioGroup>
                           </FormControl>
-                          <FormMessage />
+                          <FormMessage className="text-red-400 text-[10px] font-black uppercase tracking-widest ml-2" />
                         </FormItem>
                       )}
                     />
 
                     {course.payment_instructions && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <h4 className="font-medium text-blue-900 mb-2">Payment Instructions</h4>
-                        <p className="text-blue-800 text-sm whitespace-pre-wrap">
+                      <div className="bg-blue-500/5 border border-blue-500/20 rounded-2xl p-6">
+                        <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 bg-blue-400 rounded-full" />
+                          PAYMENT PROTOCOL
+                        </h4>
+                        <p className="text-white/60 text-[10px] font-black uppercase tracking-widest leading-relaxed whitespace-pre-wrap">
                           {course.payment_instructions}
                         </p>
                       </div>
@@ -401,15 +420,12 @@ export default function CoursePayment() {
                       control={form.control}
                       name="paymentReference"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Transaction ID</FormLabel>
+                        <FormItem className="space-y-4">
+                          <FormLabel className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-2">TRANSACTION HASH (ID)</FormLabel>
                           <FormControl>
-                            <Input
-                              placeholder="Enter your transaction ID from the payment"
-                              {...field}
-                            />
+                            <Input placeholder="ENTER TRANSACTION ID..." {...field} className="h-16 bg-white/5 border-white/10 rounded-2xl text-white font-black text-xs uppercase tracking-widest focus-visible:ring-blue-500/20 placeholder:text-white/10" />
                           </FormControl>
-                          <FormMessage />
+                          <FormMessage className="text-red-400 text-[10px] font-black uppercase tracking-widest ml-2" />
                         </FormItem>
                       )}
                     />
@@ -418,87 +434,91 @@ export default function CoursePayment() {
                       control={form.control}
                       name="paymentScreenshot"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Payment Screenshot (Optional)</FormLabel>
+                        <FormItem className="space-y-4">
+                          <FormLabel className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-2">VISUAL VERIFICATION</FormLabel>
                           <FormControl>
                             <ImageUpload
                               onImageUploaded={(url: string) => {
                                 field.onChange(url);
                                 toast({
-                                  title: "Screenshot uploaded",
-                                  description: "Your payment screenshot has been uploaded successfully.",
+                                  title: "UPLINK SUCCESS",
+                                  description: "Visual verification data synchronized.",
                                 });
                               }}
                               currentImageUrl={field.value}
-                              label="Upload Payment Screenshot"
+                              label="UPLOAD PAYMENT SCREENSHOT"
                             />
                           </FormControl>
-                          <FormMessage />
+                          <FormMessage className="text-red-400 text-[10px] font-black uppercase tracking-widest ml-2" />
                         </FormItem>
                       )}
                     />
 
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                      <h4 className="font-medium text-yellow-900 mb-2">Important Notice</h4>
-                      <p className="text-yellow-800 text-sm">
-                        After submitting your payment details, your enrollment request will be reviewed by the instructor. 
-                        You will receive access to the course content once your payment is verified and approved.
+                    <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-6">
+                      <h4 className="text-[10px] font-black text-amber-400 uppercase tracking-[0.2em] mb-3">SYSTEM ADVISORY</h4>
+                      <p className="text-white/60 text-[10px] font-black uppercase tracking-widest leading-relaxed">
+                        UPON COMMITMENT, YOUR REQUEST WILL ENTER THE VALIDATION QUEUE.
+                        ACCESS TO THE KNOWLEDGE STREAM WILL BE ENABLED POST-VERIFICATION.
                       </p>
                     </div>
 
-                    <div className="flex justify-end">
+                    <div className="pt-6">
                       <Button
                         type="submit"
                         disabled={isSubmitting || submitRequestMutation.isPending}
-                        className="w-full md:w-auto"
+                        className="h-16 w-full rounded-2xl bg-white text-black font-black text-xs uppercase tracking-[0.3em] shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:bg-blue-400 hover:text-white transition-all border-none"
                       >
-                        {isSubmitting ? "Submitting..." : "Submit Enrollment Request"}
+                        {isSubmitting ? "SYNCHRONIZING..." : "EXECUTE ENROLLMENT"}
                       </Button>
                     </div>
                   </form>
                 </Form>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
 
           {/* Course Summary */}
-          <div>
-            <Card className="sticky top-8">
-              <CardContent className="p-6">
-                {course.cover_image_url && (
+          <div className="lg:col-span-4 lg:sticky lg:top-40 h-fit">
+            <div className="rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-3xl overflow-hidden shadow-2xl">
+              <div className="aspect-video relative overflow-hidden group">
+                {course.cover_image_url ? (
                   <img
                     src={course.cover_image_url}
                     alt={course.title}
-                    className="w-full h-40 object-cover rounded-lg mb-4"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
-                )}
-                
-                <h3 className="font-semibold text-lg mb-2">{course.title}</h3>
-                <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-                  {course.description}
-                </p>
-                
-                <Separator className="mb-4" />
-                
-                <div className="text-center mb-4">
-                  <div className="text-2xl font-bold text-primary">
-                    ${course.price}
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-blue-900/50 to-purple-900/50 flex items-center justify-center">
+                    <CreditCard className="w-12 h-12 text-white/10" />
                   </div>
-                  <p className="text-sm text-muted-foreground">One-time payment</p>
-                </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent opacity-80" />
+              </div>
 
-                <div className="text-sm text-muted-foreground">
-                  <div className="flex items-center justify-between mb-2">
-                    <span>Instructor:</span>
-                    <span className="font-medium">{course.teacher?.name}</span>
+              <div className="p-8">
+                <h3 className="font-black text-white text-xl uppercase tracking-tighter mb-4 line-clamp-2">{course.title}</h3>
+
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">INSTRUCTOR</span>
+                    <span className="text-[10px] font-black text-white uppercase tracking-widest">{course.teacher?.name}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span>Access:</span>
-                    <span className="font-medium">Lifetime</span>
+                    <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">ACCESS</span>
+                    <span className="text-[10px] font-black text-white uppercase tracking-widest">UNRESTRICTED</span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+
+                <div className="pt-8 border-t border-white/10 text-center">
+                  <div className="text-white/20 text-[10px] font-black uppercase tracking-[0.3em] mb-2">ACCESS FEE</div>
+                  <div className="text-4xl font-black text-white tracking-tighter flex items-center justify-center gap-2">
+                    <span className="text-blue-400">$</span>
+                    {course.price}
+                  </div>
+                  <p className="text-white/20 text-[8px] font-black uppercase tracking-[0.2em] mt-2">ONE-TIME SYNC CONTRIBUTION</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </main>

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { User, GraduationCap, BookOpen } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -50,7 +51,7 @@ export default function CompleteProfile() {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) throw error;
-        
+
         if (session?.user) {
           setUser(session.user);
         } else {
@@ -136,88 +137,92 @@ export default function CompleteProfile() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#020617] relative overflow-hidden flex flex-col">
       <Navigation />
-      
-      <main className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <Card>
-          <CardHeader className="text-center">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <User className="h-8 w-8 text-primary" />
-            </div>
-            <CardTitle className="text-2xl">Complete Your Profile</CardTitle>
-            <p className="text-muted-foreground">
-              Welcome! Let's set up your account.
-            </p>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              <div>
-                <Label htmlFor="username">Choose a Username</Label>
+
+      {/* Futuristic Background Elements */}
+      <div className="absolute inset-0 bg-cyber-grid opacity-20 pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none animate-pulse" />
+
+      <main className="flex-1 max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-24 relative z-10 pt-40 w-full">
+        <div className="mb-12 text-center">
+          <Badge className="mb-4 bg-blue-500/10 text-blue-400 border-none text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full">
+            USER REGISTRATION PROTOCOL
+          </Badge>
+          <h1 className="text-4xl lg:text-5xl font-black text-white tracking-tighter uppercase leading-tight">FINALIZE <span className="text-glow-purple text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 italic">IDENTITY.</span></h1>
+          <p className="text-blue-100/40 font-medium tracking-tight uppercase text-[10px] mt-2 tracking-widest">Constructing Global Knowledge Unified Profile</p>
+        </div>
+
+        <div className="rounded-[3rem] bg-white/5 border border-white/10 backdrop-blur-3xl overflow-hidden shadow-2xl neon-border-blue">
+          <div className="p-10 lg:p-12">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
+              <div className="space-y-4">
+                <Label htmlFor="username" className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-2">CHOOSE DESIGNATION</Label>
                 <Input
                   id="username"
                   {...register("username")}
-                  placeholder="Enter your username"
+                  placeholder="ENTER UNIQUE ALIAS..."
+                  className="h-16 bg-white/5 border-white/10 rounded-2xl text-white font-black text-xs uppercase tracking-widest focus-visible:ring-blue-500/20 placeholder:text-white/10"
                   data-testid="input-username"
                 />
                 {errors.username && (
-                  <p className="text-sm text-destructive mt-1">{errors.username.message}</p>
+                  <p className="text-red-400 text-[10px] font-black uppercase tracking-widest ml-2">{errors.username.message}</p>
                 )}
               </div>
 
-              <div>
-                <Label className="text-base font-medium">I am a...</Label>
+              <div className="space-y-6">
+                <Label className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-2">SELECT SYSTEM ROLE</Label>
                 <RadioGroup
                   value={selectedRole}
                   onValueChange={(value) => setValue("role", value as "teacher" | "student")}
-                  className="mt-3"
+                  className="grid grid-cols-1 gap-6"
                 >
-                  <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                    <RadioGroupItem value="teacher" id="teacher" />
-                    <div className="flex items-center space-x-3 flex-1">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <GraduationCap className="h-5 w-5 text-blue-600" />
+                  <div className={`flex items-center space-x-4 p-6 border-2 rounded-2xl transition-all cursor-pointer ${selectedRole === 'teacher' ? 'bg-blue-500/10 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.1)]' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>
+                    <RadioGroupItem value="teacher" id="teacher" className="border-white/20 text-blue-500" />
+                    <div className="flex items-center space-x-4 flex-1">
+                      <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                        <GraduationCap className="h-6 w-6 text-blue-400" />
                       </div>
                       <div>
-                        <Label htmlFor="teacher" className="font-medium cursor-pointer">
-                          Teacher
+                        <Label htmlFor="teacher" className="font-black text-xs text-white uppercase tracking-widest cursor-pointer">
+                          Educator
                         </Label>
-                        <p className="text-sm text-gray-500">Create and share courses</p>
+                        <p className="text-[10px] font-medium text-white/40 uppercase tracking-tighter mt-1">Deploy Knowledge Streams</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                    <RadioGroupItem value="student" id="student" />
-                    <div className="flex items-center space-x-3 flex-1">
-                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                        <BookOpen className="h-5 w-5 text-green-600" />
+                  <div className={`flex items-center space-x-4 p-6 border-2 rounded-2xl transition-all cursor-pointer ${selectedRole === 'student' ? 'bg-purple-500/10 border-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.1)]' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>
+                    <RadioGroupItem value="student" id="student" className="border-white/20 text-purple-500" />
+                    <div className="flex items-center space-x-4 flex-1">
+                      <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                        <BookOpen className="h-6 w-6 text-purple-400" />
                       </div>
                       <div>
-                        <Label htmlFor="student" className="font-medium cursor-pointer">
-                          Student
+                        <Label htmlFor="student" className="font-black text-xs text-white uppercase tracking-widest cursor-pointer">
+                          Neural Initiate
                         </Label>
-                        <p className="text-sm text-gray-500">Learn from amazing courses</p>
+                        <p className="text-[10px] font-medium text-white/40 uppercase tracking-tighter mt-1">Access Universal Education</p>
                       </div>
                     </div>
                   </div>
                 </RadioGroup>
                 {errors.role && (
-                  <p className="text-sm text-destructive mt-1">{errors.role.message}</p>
+                  <p className="text-red-400 text-[10px] font-black uppercase tracking-widest ml-2">{errors.role.message}</p>
                 )}
               </div>
 
               <Button
                 type="submit"
-                className="w-full"
+                className="h-16 w-full rounded-2xl bg-white text-black font-black text-xs uppercase tracking-[0.3em] shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:bg-blue-400 hover:text-white transition-all border-none"
                 disabled={isSubmitting}
                 data-testid="button-complete-profile"
               >
-                {isSubmitting ? "Setting up your account..." : "Complete Profile"}
+                {isSubmitting ? "SYNCHRONIZING..." : "INITIALIZE ACCESS"}
               </Button>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </main>
 
       <Footer />

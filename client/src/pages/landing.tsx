@@ -6,7 +6,7 @@ import Footer from "@/components/footer";
 
 export default function Landing() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#020617]">
       <Navigation />
       <HeroSection />
       <FeaturesSection />
