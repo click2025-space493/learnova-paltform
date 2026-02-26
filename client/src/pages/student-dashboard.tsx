@@ -306,14 +306,14 @@ export default function StudentDashboard() {
               ) : enrollmentRequests && enrollmentRequests.length > 0 ? (
                 <div className="space-y-6">
                   {enrollmentRequests.slice(0, 3).map((request: any) => (
-                    <div key={request.id} className="group p-6 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-3xl hover:bg-white/10 transition-all cursor-default relative overflow-hidden">
-                      <div className="flex flex-col gap-4 relative z-10">
-                        <div className="flex items-start justify-between gap-4">
-                          <h4 className="font-black text-white text-sm line-clamp-2 uppercase tracking-wide leading-tight group-hover:text-purple-400 transition-colors">
+                    <div key={request.id} className="group p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-3xl hover:bg-white/10 transition-all cursor-default relative overflow-hidden">
+                      <div className="flex flex-col gap-6 relative z-10">
+                        <div className="flex items-start justify-between gap-6">
+                          <h4 className="font-black text-white text-base line-clamp-2 uppercase tracking-wide leading-tight group-hover:text-purple-400 transition-colors">
                             {request.course?.title || 'Unknown Course'}
                           </h4>
                           <Badge
-                            className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border-none ${request.status === 'approved' ? 'bg-green-500/10 text-green-400' :
+                            className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl border-none ${request.status === 'approved' ? 'bg-green-500/10 text-green-400' :
                               request.status === 'rejected' ? 'bg-red-500/10 text-red-400' :
                                 'bg-purple-500/10 text-purple-400'
                               }`}
@@ -321,16 +321,17 @@ export default function StudentDashboard() {
                             {request.status}
                           </Badge>
                         </div>
-                        <div className="flex items-center justify-between text-[9px] font-black text-white/20 uppercase tracking-[0.2em]">
+                        <div className="flex items-center justify-between text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">
                           <span>SYNC: {new Date(request.requested_at).toLocaleDateString()}</span>
                           {request.status === 'approved' && (
-                            <Link href={`/courses/${request.course?.id}/learn`} className="text-blue-400 hover:text-white transition-colors">
-                              INITIATE →
+                            <Link href={`/courses/${request.course?.id}/learn`} className="text-blue-400 hover:text-white transition-colors flex items-center gap-2 group/link">
+                              ENTER YOUR COURSE
+                              <span className="group-hover/link:translate-x-1 transition-transform">→</span>
                             </Link>
                           )}
                         </div>
                       </div>
-                      <div className={`absolute top-0 right-0 w-24 h-24 opacity-10 rounded-full blur-2xl -mr-12 -mt-12 transition-all duration-700 ${request.status === 'approved' ? 'bg-green-500' : request.status === 'rejected' ? 'bg-red-500' : 'bg-purple-500'}`} />
+                      <div className={`absolute top-0 right-0 w-32 h-32 opacity-10 rounded-full blur-3xl -mr-16 -mt-16 transition-all duration-700 ${request.status === 'approved' ? 'bg-green-500' : request.status === 'rejected' ? 'bg-red-500' : 'bg-purple-500'}`} />
                     </div>
                   ))}
                 </div>
