@@ -23,20 +23,20 @@ export default function CourseCard({ course }: CourseCardProps) {
 
   // Determine instructor name based on course
   const getInstructorName = () => {
-    if (course.title === "Digital Control" || course.title === "Motion Control") {
+    if (course.title?.toLowerCase().includes("digital control") || course.title?.toLowerCase().includes("motion control")) {
       return "Eng Ahmed Samir";
     }
-    if (course.title === "Mechanical vibration") {
+    if (course.title?.toLowerCase().includes("mechanical vibration")) {
       return "Eng Salah Nour";
     }
     return "Eng Mohammed Essa";
   };
 
   const getInstructorInitials = () => {
-    if (course.title === "Digital Control" || course.title === "Motion Control") {
+    if (course.title?.toLowerCase().includes("digital control") || course.title?.toLowerCase().includes("motion control")) {
       return "AS";
     }
-    if (course.title === "Mechanical vibration") {
+    if (course.title?.toLowerCase().includes("mechanical vibration")) {
       return "SN";
     }
     return "ME";
